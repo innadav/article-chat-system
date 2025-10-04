@@ -12,7 +12,7 @@ func NewClientFactory(ctx context.Context, cfg *config.Config) (Client, error) {
 	provider := strings.ToLower(cfg.LLMProvider)
 	switch provider {
 	case "openai":
-		return newOpenAIClient(ctx, cfg.OpenAIAPIKey)
+		return newOpenAIClient(ctx, cfg.OpenAIAPIKey, cfg.OpenAIModel)
 	case "mock":
 		return newMockClient(), nil
 	default:

@@ -20,7 +20,7 @@ type openaiClient struct {
 var tracer = otel.Tracer("llm-openai-client") // Create a tracer for this package
 
 // newOpenAIClient creates a client for interacting with OpenAI.
-func newOpenAIClient(ctx context.Context, apiKey string) (Client, error) {
+func newOpenAIClient(ctx context.Context, apiKey string, model string) (Client, error) {
 	if apiKey == "" {
 		return nil, fmt.Errorf("OpenAI API key is missing. Please set the OPENAI_API_KEY environment variable")
 	}
@@ -36,7 +36,7 @@ func newOpenAIClient(ctx context.Context, apiKey string) (Client, error) {
 	log.Println("Successfully initialized OpenAI client.")
 	return &openaiClient{
 		client: client,
-		model:  "gpt-3.5-turbo", // Default model
+		model:  model,
 	}, nil
 }
 

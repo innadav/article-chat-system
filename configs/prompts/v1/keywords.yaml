@@ -1,4 +1,6 @@
 template: |
   You are an expert analyst. Analyze the article titled '{{.Title}}'.
-  Extract the top 7-10 most important keywords AND named entities (people, companies, etc.).
-  Return them as a single, comma-separated list.
+  Your task is to extract the top 7-10 most important keywords AND named entities (people, companies, products, etc.).
+  The result should be a single, comma-separated list.
+
+  Example: AI, Machine Learning, Sam Altman, OpenAI, ChatGPT, Legal Confidentiality

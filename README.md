@@ -69,8 +69,8 @@ Create a `.env` file in the root of the project with the following structure:
 PORT=8080
 
 # OpenAI Configuration
-OPENAI_MODEL=gpt-4-turbo
 OPENAI_API_KEY=sk-proj-your_openai_api_key_here
+OPENAI_MODEL=gpt-3.5-turbo
 
 # Database Configuration
 DATABASE_URL=postgres://user:password@postgres:5432/articledb?sslmode=disable
@@ -79,7 +79,7 @@ DATABASE_URL=postgres://user:password@postgres:5432/articledb?sslmode=disable
 **Required Environment Variables:**
 - `OPENAI_API_KEY`: Your OpenAI API key (required)
 - `PORT`: Server port (default: 8080)
-- `OPENAI_MODEL`: OpenAI model to use (default: gpt-4-turbo)
+- `OPENAI_MODEL`: OpenAI model to use (default: gpt-3.5-turbo)
 - `DATABASE_URL`: PostgreSQL connection string for the database
 
 **Note:** The DATABASE_URL uses `postgres:5432` for container-to-container communication within Docker.

@@ -14,6 +14,7 @@ type Config struct {
 	InitialArticleURLs []string
 	LLMProvider        string
 	OpenAIAPIKey       string
+	OpenAIModel        string
 	PromptVersion      string
 	WeaviateHost       string
 	WeaviateScheme     string
@@ -32,6 +33,7 @@ func New() *Config {
 		Port:           GetEnv("PORT", "8080"),
 		LLMProvider:    GetEnv("LLM_PROVIDER", "openai"),
 		OpenAIAPIKey:   GetEnv("OPENAI_API_KEY", ""),
+		OpenAIModel:    GetEnv("OPENAI_MODEL", "gpt-3.5-turbo"),
 		PromptVersion:  GetEnv("PROMPT_VERSION", "v1"),
 		WeaviateHost:   GetEnv("WEAVIATE_HOST", "localhost:8081"),
 		WeaviateScheme: GetEnv("WEAVIATE_SCHEME", "http"),
