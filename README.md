@@ -1,54 +1,68 @@
 # Article Chat System
 
-This project is a chat-based service, written in Go, that allows users to interact with a set of articles through a natural language interface. It can provide summaries, extract topics, analyze sentiment, and perform complex comparative analysis on a persistent collection of articles.
+[![Go Report Card](https://goreportcard.com/badge/github.com/innadav/article-chat-system)](https://goreportcard.com/report/github.com/innadav/article-chat-system)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Architecture Overview
+An intelligent, chat-based service built in Go that allows users to interact with a persistent collection of articles. The system leverages Large Language Models (LLMs) and a vector database to provide summarization, sentiment analysis, and complex, context-aware query responses.
 
-The system is built on a clean, decoupled architecture using several key design patterns to separate concerns. There are two primary workflows: the **Article Ingestion Flow** and the **Chat Request Flow**.
+## ✨ Features
 
-### Article Ingestion Flow (Facade Pattern)
+  * **Natural Language Chat Interface**: Ask questions in plain English via a simple REST API.
+  * **Dynamic Article Ingestion**: Add new articles to the system at any time by providing a URL.
+  * **Advanced Query Capabilities**:
+      * Summarization, keyword/entity extraction, and sentiment analysis.
+      * Comparative analysis (tone, positivity) between multiple articles.
+      * Semantic topic search that understands the *meaning* of your query.
+  * **Persistent Storage**: Article metadata is stored in PostgreSQL, and semantic vectors are stored in Weaviate.
+  * **Observability**: Full support for structured logging (`slog`) and distributed tracing (`OpenTelemetry` + `Jaeger`) for LangSmith-like visibility.
+  * **API-Level Caching**: In-memory cache for instant responses to repeated queries.
 
-When a new article is added via the `/articles` endpoint, it follows this simplified process managed by the `processing.Facade`, which hides the complexity of fetching, analyzing, and storing the data.
+## 🛠️ Technology Stack
+
+  * **Language**: Go
+  * **API Framework**: Chi
+  * **Databases**: PostgreSQL (metadata), Weaviate (vector search)
+  * **AI / LLM**: Google Gemini / OpenAI (configurable)
+  * **Observability**: OpenTelemetry, Jaeger
+  * **Containerization**: Docker, Docker Compose
+
+## 🏗️ Architecture Overview
+
+The system is built on a clean, decoupled architecture using several key design patterns to separate concerns.
+
+### System Components
+
+This diagram shows the main components and their dependencies. The `Handler` is the entry point, which uses the `Facade` for ingestion and the `Planner`/`Executor` for chat. All core logic uses the `ArticleService` to interact with the data layers.
 
 ```mermaid
 graph TD
-    A[HTTP POST /articles] --> B{processing.Facade};
-    B --> C[1. Fetcher: Fetch & Parse URL];
-    C --> D[2. Analyzer: Initial Analysis (LLM Call)];
-    D --> E[3. Save to PostgreSQL];
-    D --> F[4. Save to Weaviate];
+    subgraph "Transport Layer"
+        A[HTTP Handler]
+    end
+    subgraph "Business Logic"
+        B[Facade]
+        C[Planner]
+        D[Executor]
+        E[Strategies]
+        F[ArticleService]
+    end
+    subgraph "Data Layer"
+        G[Postgres Repo]
+        H[Weaviate Repo]
+    end
+    A --> B; A --> C; A --> D;
+    B --> F; C --> F; D --> E; E --> F;
+    F --> G; F --> H;
 ```
 
-### Chat Request Flow (Strategy Pattern)
+## 🧠 Key Design Decisions
 
-When a user sends a query to the `/chat` endpoint, the system uses a multi-step process to generate an intelligent answer.
+  - **Hexagonal Architecture**: Core application logic is isolated from external concerns. The `llm.Client` and `repository.ArticleRepository` interfaces allow swapping external services without changing business logic.
+  - **Facade Pattern**: Used in `internal/processing/facade.go` to provide a simple, single-method interface for the complex process of ingesting a new article.
+  - **Strategy & Template Method Patterns**: Used in `internal/strategies/` to manage each chat query type as an interchangeable algorithm, making the system highly extensible.
+  - **Factory Patterns**: The `llm.Factory` selects different LLM clients, and the `prompts.Factory` centralizes all prompt engineering by loading versioned templates from external YAML files.
 
-```mermaid
-graph TD
-    A[HTTP POST /chat] --> B{planner.Service};
-    B --> C[1. Vector Search (Weaviate)];
-    C --> D[2. Create Plan (LLM Call)];
-    D --> E{strategies.Executor};
-    E --> F[3. Select Strategy (e.g., Summarize)];
-    F --> G[4. Execute (Final LLM Call)];
-    G --> H[HTTP Response];
-```
-
-## Key Design Decisions
-
-  - **Hexagonal Architecture**: The core application logic in the `internal` directory is isolated from external concerns. The `llm.Client` interface allows swapping AI providers, and the `repository.ArticleRepository` interface decouples the application from PostgreSQL.
-
-  - **Facade Pattern**: Used in `internal/processing/facade.go` to provide a simple, single-method interface (`AddNewArticle`) for the complex, multi-step process of ingesting a new article.
-
-  - **Strategy & Template Method Patterns**: Used in `internal/strategies/` to manage each chat query type as an interchangeable algorithm. This makes the system modular and easy to extend. A `BaseStrategy` provides a shared workflow skeleton.
-
-  - **Factory Patterns**: The `llm.Factory` allows the system to select different LLM clients, and the `prompts.Factory` centralizes all prompt engineering by loading versioned templates from external YAML files.
-
-  - **Repository Pattern**: Used in `internal/repository/` to abstract all database interactions for both PostgreSQL (metadata) and Weaviate (vector search).
-
-  - **Observability**: The system is instrumented with **`slog`** for structured logging and **OpenTelemetry** for distributed tracing, providing LangSmith-like visibility into LLM calls via Jaeger.
-
-## How to Run Locally (with Docker)
+## 🚀 Getting Started
 
 ### Prerequisites
 
@@ -72,7 +86,7 @@ GEMINI_API_KEY="AIza..."
 
 ### 2\. Run the Application
 
-Use Docker Compose to build and run all the services (Go API, PostgreSQL, Weaviate, and Jaeger).
+Use Docker Compose to build and run all services (Go API, PostgreSQL, Weaviate, and Jaeger).
 
 ```bash
 docker-compose up --build
