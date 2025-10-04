@@ -12,6 +12,7 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - WEAVIATE_HOST=weaviate:8080
       - WEAVIATE_SCHEME=http
+      - OTEL_EXPORTER_OTLP_ENDPOINT=jaeger:4317
     depends_on:
       postgres:
         condition: service_started
@@ -59,6 +60,13 @@ services:
     image: cr.weaviate.io/semitechnologies/transformers-inference:sentence-transformers-multi-qa-MiniLM-L6-cos-v1
     environment:
       ENABLE_CUDA: '0' # Use CPU
+    networks:
+      - article-net
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686" # Jaeger UI
+      - "4317:4317"   # OTel gRPC endpoint
     networks:
       - article-net
 networks:

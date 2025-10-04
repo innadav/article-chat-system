@@ -135,21 +135,6 @@ func TestArticleService_GetArticle(t *testing.T) {
 	}
 }
 
-func TestArticleService_GetAllArticles(t *testing.T) {
-	mockRepo := newMockRepository()
-	mockRepo.articles["url1"] = &models.Article{URL: "url1", Title: "Article 1"}
-	mockRepo.articles["url2"] = &models.Article{URL: "url2", Title: "Article 2"}
-
-	mockLLM := newMockLLMClient()
-	service := article.NewService(mockLLM, mockRepo, nil)
-
-	articles := service.GetAllArticles(context.Background())
-
-	if len(articles) != 2 {
-		t.Errorf("Expected 2 articles, got %d", len(articles))
-	}
-}
-
 func TestArticleService_StoreArticle(t *testing.T) {
 	mockRepo := newMockRepository()
 	mockLLM := newMockLLMClient()

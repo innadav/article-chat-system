@@ -185,10 +185,12 @@ func (f *Facade) AddNewArticle(ctx context.Context, url string) (*models.Article
 		}
 	}
 
-	// 5. Index the article in the vector database (fallback)
-	if err := f.vectorSvc.IndexArticle(ctx, newArticle); err != nil {
-		log.Printf("WARNING: Failed to index article in vector database: %v", err)
-		// Don't fail the entire operation if vector indexing fails
+	// 5. Index the article in the vector database (if available)
+	if f.vectorSvc != nil {
+		if err := f.vectorSvc.IndexArticle(ctx, newArticle); err != nil {
+			log.Printf("WARNING: Failed to index article in vector database: %v", err)
+			// Don't fail the entire operation if vector indexing fails
+		}
 	}
 
 	log.Printf("FACADE: Successfully processed and stored new article: %s", newArticle.Title)

@@ -73,7 +73,7 @@ func setupTestWithDB(t *testing.T) (repository.ArticleRepository, func()) {
 	}
 
 	// Run the schema initialization script.
-	initSQL, err := os.ReadFile("../../scripts/init.sql")
+	initSQL, err := os.ReadFile("scripts/init.sql")
 	if err != nil {
 		t.Fatalf("could not read init.sql: %v", err)
 	}
@@ -92,6 +92,18 @@ func TestFacade_AddNewArticle_WithDatabase(t *testing.T) {
 		t.Skip("skipping integration test in short mode")
 	}
 
+	// Change to project root directory for prompt loading
+	originalDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Failed to get current directory: %v", err)
+	}
+	defer os.Chdir(originalDir)
+
+	// Change to project root (two levels up from tests/integration/)
+	if err := os.Chdir("../../"); err != nil {
+		t.Fatalf("Failed to change to project root: %v", err)
+	}
+
 	repo, teardown := setupTestWithDB(t)
 	defer teardown()
 
@@ -108,8 +120,8 @@ func TestFacade_AddNewArticle_WithDatabase(t *testing.T) {
 		t.Fatalf("Failed to create prompt factory: %v", err)
 	}
 
-	// Create a simple vector service for the integration test
-	vectorSvc := vector.NewSimpleVectorService(articleSvc)
+	// For integration test, we don't need vector service
+	var vectorSvc vector.Service = nil
 
 	// For integration test, we don't need Weaviate, so we pass nil for vecRepo
 	facade := processing.NewFacade(mockLLM, articleSvc, promptFactory, vectorSvc, nil)

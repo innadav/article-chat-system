@@ -35,16 +35,6 @@ func (s *ArticleService) GetArticle(ctx context.Context, url string) (*models.Ar
 	return art, true
 }
 
-// GetAllArticles retrieves all articles from the repository.
-// Deprecated: Use FindTopEntities or other specific repository methods instead for better performance.
-func (s *ArticleService) GetAllArticles(ctx context.Context) []*models.Article {
-	articles, err := s.pgRepo.FindAll(ctx)
-	if err != nil {
-		return []*models.Article{}
-	}
-	return articles
-}
-
 // StoreArticle saves an article to the repository.
 func (s *ArticleService) StoreArticle(ctx context.Context, article *models.Article) error {
 	return s.pgRepo.Save(ctx, article)

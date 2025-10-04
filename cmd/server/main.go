@@ -20,16 +20,29 @@ import (
 	"article-chat-system/internal/prompts"
 	"article-chat-system/internal/repository"
 	"article-chat-system/internal/strategies"
+	"article-chat-system/internal/tracing"
 	handler "article-chat-system/internal/transport/http"
 	"article-chat-system/internal/vector"
 
 	_ "github.com/lib/pq"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 func main() {
 	ctx := context.Background()
 
-	// 1. Create a new structured JSON logger
+	// 1. Initialize the Tracer Provider at the very beginning.
+	tp, err := tracing.InitTracerProvider()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err := tp.Shutdown(context.Background()); err != nil {
+			log.Printf("Error shutting down tracer provider: %v", err)
+		}
+	}()
+
+	// 2. Create a new structured JSON logger
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
 	}))
@@ -96,14 +109,14 @@ func main() {
 	// Initialize vector service (fallback)
 	var vectorSvc vector.Service
 	if vecRepo == nil {
-		vectorSvc = vector.NewSimpleVectorService(articleSvc)
-		logger.Info("Using simple vector service")
+		vectorSvc = nil
+		logger.Info("No vector service available")
 	} else {
 		// Use the existing Weaviate service as fallback
 		weaviateSvc, err := vector.NewWeaviateService(cfg.WeaviateHost, cfg.WeaviateScheme, cfg.WeaviateAPIKey)
 		if err != nil {
 			logger.Warn("Failed to initialize Weaviate service", "error", err)
-			vectorSvc = vector.NewSimpleVectorService(articleSvc)
+			vectorSvc = nil
 		} else {
 			logger.Info("Successfully initialized Weaviate service")
 			vectorSvc = weaviateSvc
@@ -144,7 +157,7 @@ func main() {
 	// 6. Start the Server
 	server := &http.Server{
 		Addr:    ":8080",
-		Handler: apiHandler.Routes(),
+		Handler: otelhttp.NewHandler(apiHandler.Routes(), "http.server"),
 	}
 	go func() {
 		logger.Info("Starting server", "port", "8080")

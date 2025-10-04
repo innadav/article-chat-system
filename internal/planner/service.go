@@ -8,6 +8,7 @@ import (
 
 	"article-chat-system/internal/article"
 	"article-chat-system/internal/llm"
+	"article-chat-system/internal/models"
 	"article-chat-system/internal/prompts"
 	"article-chat-system/internal/repository"
 )
@@ -37,9 +38,9 @@ func (s *plannerService) CreatePlan(ctx context.Context, query string) (*QueryPl
 	// 1. Find the top 5 most relevant articles using vector search.
 	relevantArticles, err := s.articleSvc.SearchSimilarArticles(ctx, query, 5)
 	if err != nil {
-		log.Printf("WARNING: Vector search failed, falling back to all articles: %v", err)
-		// Fallback to using all articles if vector search fails
-		relevantArticles = s.articleSvc.GetAllArticles(ctx)
+		log.Printf("WARNING: Vector search failed, using empty article list: %v", err)
+		// Use empty slice instead of loading all articles
+		relevantArticles = []*models.Article{}
 	}
 
 	// 2. Build the prompt using ONLY the relevant articles as context.

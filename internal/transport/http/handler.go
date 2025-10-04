@@ -120,6 +120,7 @@ func (h *Handler) handleChat(w http.ResponseWriter, r *http.Request) {
 	// 3. Create a plan (First LLM call).
 	plan, err := h.plannerSvc.CreatePlan(r.Context(), query)
 	if err != nil {
+		h.logger.Error("Failed to create a query plan", "error", err, "raw_query", query)
 		http.Error(w, "Failed to create a query plan: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -127,6 +128,7 @@ func (h *Handler) handleChat(w http.ResponseWriter, r *http.Request) {
 	// 4. Execute the plan (Potential second LLM call).
 	answer, err := h.strategyExecutor.ExecutePlan(r.Context(), plan, h.articleSvc, h.promptFactory, h.vectorSvc)
 	if err != nil {
+		h.logger.Error("Failed to execute the plan", "error", err, "plan", plan)
 		http.Error(w, "Failed to execute the plan: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -142,18 +144,22 @@ func (h *Handler) handleChat(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) handleAddArticle(w http.ResponseWriter, r *http.Request) {
 	var req AddArticleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Error("Invalid request body for add article", "error", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 	newArticle, err := h.processingFacade.AddNewArticle(r.Context(), req.URL)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
+			h.logger.Warn("Article already exists", "url", req.URL)
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
+		h.logger.Error("Failed to process article", "error", err, "url", req.URL)
 		http.Error(w, "Failed to process article: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	h.logger.Info("Successfully processed new article", "url", req.URL, "title", newArticle.Title)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(newArticle)
@@ -162,16 +168,19 @@ func (h *Handler) handleAddArticle(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) handleFindEntities(w http.ResponseWriter, r *http.Request) {
 	var req FindEntitiesRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Error("Invalid request body for find entities", "error", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	entities, err := h.articleSvc.FindCommonEntities(r.Context(), req.URLs)
 	if err != nil {
+		h.logger.Error("Failed to find common entities", "error", err, "urls", req.URLs)
 		http.Error(w, "Failed to find common entities: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	h.logger.Info("Successfully found common entities", "count", len(entities), "urls", req.URLs)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(FindEntitiesResponse{
 		Entities: entities,
