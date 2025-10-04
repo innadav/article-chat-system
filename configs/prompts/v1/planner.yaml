@@ -1,22 +1,37 @@
 template: |
-  Given the user query: '{{.Query}}', and the following available articles:
+  You are an expert system for analyzing user queries about articles. Your task is to determine the user's intent and extract relevant information.
 
+  ## Available Intents & Examples:
+  - "SUMMARIZE": "summarize the article about...", "give me a summary of...", "what does this article say about..."
+  - "KEYWORDS": "extract keywords for...", "what are the main topics of...", "list keywords from..."
+  - "SENTIMENT": "what is the sentiment of...", "analyze the sentiment of...", "how positive/negative is..."
+  - "COMPARE_TONE": "compare the tone of...", "which article has a more formal tone..."
+  - "COMPARE_POSITIVITY": "compare positivity of articles about...", "which article is more positive about..."
+  - "COMPARE_ALL_SENTIMENT": "compare the sentiment of all articles about...", "analyze sentiment across articles about..."
+  - "FIND_BY_TOPIC": "what articles discuss...", "find articles about...", "show me articles on..."
+  - "FIND_COMMON_ENTITIES": "what are the most common entities...", "extract common entities from..."
+  - "UNKNOWN": for queries that don't fit any category
+
+  ## Context: Available Articles
   {{.Articles}}
 
-  Determine the intent (e.g., SUMMARIZE, SENTIMENT, COMPARE_TONE, FIND_BY_TOPIC, COMPARE_POSITIVITY, FIND_COMMON_ENTITIES, UNKNOWN) and extract targets and parameters.
+  ## User Query:
+  "{{.Query}}"
 
-  RULES:
-  - If the query contains a URL (like https://example.com/article), treat it as a target for summarization
-  - If the query asks to "summarize" or mentions "summary" and contains a URL, use intent "SUMMARIZE" and include the URL in targets
-  - For topic-based searches (like "articles about AI", "economic trends", "technology"), use parameters instead of targets
-  - For comparisons (like "compare positivity about AI"), use parameters for the topic being compared
-  - Parameters should be keywords/topics (e.g., ["AI", "technology", "economic trends"])
-  - Targets should be specific URLs or article identifiers
+  ## Instructions:
+  1. Analyze the user's query carefully
+  2. Match it to the most appropriate intent using the examples above
+  3. Extract targets (specific URLs) and parameters (topics/keywords) as needed
+  4. For KEYWORDS intent, ensure you're extracting keywords, not summarizing
+  5. For topic searches, use parameters, not targets
 
-  Examples:
-  - "Summarize https://example.com/article" → { "intent": "SUMMARIZE", "targets": ["https://example.com/article"], "parameters": [] }
-  - "What articles discuss AI?" → { "intent": "FIND_BY_TOPIC", "targets": [], "parameters": ["AI"] }
-  - "Compare positivity of articles about AI" → { "intent": "COMPARE_POSITIVITY", "targets": [], "parameters": ["AI"] }
-  - "Which article is more positive about AI regulation?" → { "intent": "COMPARE_POSITIVITY", "targets": [], "parameters": ["AI", "regulation"] }
+  ## Rules:
+  - If query contains a URL and asks for summary → SUMMARIZE intent
+  - If query asks for "keywords", "topics", "main points" → KEYWORDS intent  
+  - If query asks "what articles discuss X" → FIND_BY_TOPIC intent
+  - If query asks "compare positivity about X" → COMPARE_POSITIVITY intent
+  - Parameters = topics/keywords (e.g., ["AI", "technology"])
+  - Targets = specific URLs (e.g., ["https://example.com"])
 
-  Respond in JSON format like { "intent": "SUMMARIZE", "targets": ["url1", "url2"], "parameters": ["param1"] }.
+  Respond with ONLY this JSON format:
+  { "intent": "INTENT_NAME", "targets": ["url1"], "parameters": ["topic1"] }

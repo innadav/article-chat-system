@@ -12,14 +12,15 @@ import (
 type QueryIntent string
 
 const (
-	IntentSummarize          QueryIntent = "SUMMARIZE"
-	IntentKeywords           QueryIntent = "KEYWORDS"
-	IntentSentiment          QueryIntent = "SENTIMENT"
-	IntentCompareTone        QueryIntent = "COMPARE_TONE"
-	IntentFindTopic          QueryIntent = "FIND_BY_TOPIC"
-	IntentComparePositive    QueryIntent = "COMPARE_POSITIVITY"
-	IntentFindCommonEntities QueryIntent = "FIND_COMMON_ENTITIES"
-	IntentUnknown            QueryIntent = "UNKNOWN"
+	IntentSummarize           QueryIntent = "SUMMARIZE"
+	IntentKeywords            QueryIntent = "KEYWORDS"
+	IntentSentiment           QueryIntent = "SENTIMENT"
+	IntentCompareTone         QueryIntent = "COMPARE_TONE"
+	IntentFindTopic           QueryIntent = "FIND_BY_TOPIC"
+	IntentComparePositive     QueryIntent = "COMPARE_POSITIVITY"
+	IntentFindCommonEntities  QueryIntent = "FIND_COMMON_ENTITIES"
+	IntentCompareAllSentiment QueryIntent = "COMPARE_ALL_SENTIMENT"
+	IntentUnknown             QueryIntent = "UNKNOWN"
 )
 
 // QueryPlan is the structured representation of a user's request.

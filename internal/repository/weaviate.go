@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 
 	"article-chat-system/internal/models"
 
+	"github.com/google/uuid"
 	"github.com/weaviate/weaviate-go-client/v4/weaviate"
 	"github.com/weaviate/weaviate-go-client/v4/weaviate/graphql"
 	weaviate_models "github.com/weaviate/weaviate/entities/models"
@@ -49,15 +49,86 @@ func (r *VectorRepository) ensureSchemaExists(ctx context.Context) error {
 
 	classObj := &weaviate_models.Class{
 		Class:      ArticleClassName,
-		Vectorizer: "text2vec-transformers", // Use the built-in vectorizer
+		Vectorizer: "text2vec-transformers", // The module to use
+
+		// Module configuration to control vectorization
+		ModuleConfig: map[string]interface{}{
+			"text2vec-transformers": map[string]interface{}{
+				"vectorizeClassName": false, // Don't vectorize the class name "Article"
+			},
+		},
+
 		Properties: []*weaviate_models.Property{
-			{Name: "url", DataType: []string{"text"}},
-			{Name: "title", DataType: []string{"text"}},
-			{Name: "summary", DataType: []string{"text"}},
-			{Name: "excerpt", DataType: []string{"text"}},
-			{Name: "sentiment", DataType: []string{"text"}},
-			{Name: "topics", DataType: []string{"text[]"}},
-			{Name: "entities", DataType: []string{"text[]"}},
+			{
+				Name:     "url",
+				DataType: []string{"text"},
+				// Explicitly tell Weaviate NOT to use the URL for vectorization
+				ModuleConfig: map[string]interface{}{
+					"text2vec-transformers": map[string]interface{}{
+						"skip": true,
+					},
+				},
+			},
+			{
+				Name:     "title",
+				DataType: []string{"text"},
+				// Explicitly tell Weaviate TO USE the title for vectorization
+				ModuleConfig: map[string]interface{}{
+					"text2vec-transformers": map[string]interface{}{
+						"skip": false,
+					},
+				},
+			},
+			{
+				Name:     "summary",
+				DataType: []string{"text"},
+				// Explicitly tell Weaviate TO USE the summary for vectorization
+				ModuleConfig: map[string]interface{}{
+					"text2vec-transformers": map[string]interface{}{
+						"skip": false,
+					},
+				},
+			},
+			{
+				Name:     "excerpt",
+				DataType: []string{"text"},
+				// Explicitly tell Weaviate TO USE the excerpt for vectorization
+				ModuleConfig: map[string]interface{}{
+					"text2vec-transformers": map[string]interface{}{
+						"skip": false,
+					},
+				},
+			},
+			{
+				Name:     "sentiment",
+				DataType: []string{"text"},
+				// Skip sentiment for vectorization
+				ModuleConfig: map[string]interface{}{
+					"text2vec-transformers": map[string]interface{}{
+						"skip": true,
+					},
+				},
+			},
+			{
+				Name:     "topics",
+				DataType: []string{"text[]"},
+				// Skip topics array for vectorization
+				ModuleConfig: map[string]interface{}{
+					"text2vec-transformers": map[string]interface{}{
+						"skip": true,
+					},
+				},
+			},
+			{
+				Name:     "entities",
+				DataType: []string{"text[]"},
+				// Skip entities array for vectorization
+				ModuleConfig: map[string]interface{}{
+					"text2vec-transformers": map[string]interface{}{
+						"skip": true,
+					},
+				},
+			},
 		},
 	}
 
@@ -72,11 +143,6 @@ func (r *VectorRepository) ensureSchemaExists(ctx context.Context) error {
 
 // SaveArticle lets Weaviate create the vector automatically from the content.
 func (r *VectorRepository) SaveArticle(ctx context.Context, art *models.Article) error {
-	// Use URL as the object ID for consistency
-	objectID := strings.ReplaceAll(art.URL, "/", "_")
-	objectID = strings.ReplaceAll(objectID, ":", "_")
-	objectID = strings.ReplaceAll(objectID, ".", "_")
-
 	properties := map[string]interface{}{
 		"url":       art.URL,
 		"title":     art.Title,
@@ -87,9 +153,13 @@ func (r *VectorRepository) SaveArticle(ctx context.Context, art *models.Article)
 		"entities":  art.Entities,
 	}
 
+	// Generate a UUID v5 (SHA-1 hash) based on a namespace and the article's URL.
+	// This ensures the same URL always results in the same UUID.
+	id := uuid.NewSHA1(uuid.NameSpaceURL, []byte(art.URL))
+
 	_, err := r.client.Data().Creator().
 		WithClassName(ArticleClassName).
-		WithID(objectID).
+		WithID(id.String()). // Explicitly set the generated UUID as the ID.
 		WithProperties(properties).
 		Do(ctx)
 

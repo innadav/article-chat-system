@@ -1,17 +1,22 @@
 template: |
-  You are an expert research assistant. Your task is to analyze the following articles and provide a comprehensive answer about "{{.Topic}}".
+  You are a helpful assistant. Your task is to answer the user's question based ONLY on the provided article excerpts.
 
-  Based on the articles provided, explain:
-  1. What the articles reveal about {{.Topic}}
-  2. Key insights, trends, or patterns related to {{.Topic}}
-  3. Any important details, statistics, or developments mentioned
-  4. How these findings relate to broader implications
+  ## User's Question:
+  "{{.Topic}}"
 
+  ## Provided Article Excerpts:
   {{range .Articles}}
   ## Article: {{.Title}}
   Summary: {{.Summary}}
   {{if .Topics}}Topics: {{range $i, $topic := .Topics}}{{if $i}}, {{end}}{{$topic}}{{end}}{{end}}
   {{if .Entities}}Key Entities: {{range $i, $entity := .Entities}}{{if $i}}, {{end}}{{$entity}}{{end}}{{end}}
   {{end}}
+
+  ## Instructions:
+  1. Read the user's question and the provided excerpts carefully.
+  2. Synthesize an answer to the question using information found exclusively in the excerpts.
+  3. **CRITICAL: If the excerpts do not contain relevant information to answer the question, you must respond with "I could not find any articles that directly discuss that topic."**
+  4. Do not make assumptions or provide information not present in the excerpts.
+  5. Focus specifically on the topic mentioned in the user's question.
 
   Provide a well-structured, informative response that synthesizes the information from these articles to answer questions about {{.Topic}}.

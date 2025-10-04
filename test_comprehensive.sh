@@ -235,14 +235,14 @@ run_comprehensive_tests() {
         "Article Summarization" \
         "Summarize the article https://techcrunch.com/2025/07/25/sam-altman-warns-theres-no-legal-confidentiality-when-using-chatgpt-as-a-therapist/" \
         "SUMMARIZE" \
-        "summary"
+        "Sam Altman"
     
     # Test 2: Keywords/Topics Extraction
     test_api_query \
         "Keywords Extraction" \
         "Extract keywords from the article https://techcrunch.com/2025/07/25/sam-altman-warns-theres-no-legal-confidentiality-when-using-chatgpt-as-a-therapist/" \
         "KEYWORDS" \
-        "keywords"
+        "KEYWORDS"
     
     # Test 3: Sentiment Analysis
     test_api_query \

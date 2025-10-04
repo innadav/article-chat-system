@@ -20,13 +20,14 @@ type Executor struct {
 func NewExecutor() *Executor {
 	return &Executor{
 		Strategies: map[planner.QueryIntent]planner.IntentStrategy{
-			planner.IntentSummarize:          NewSummarizeStrategy(),
-			planner.IntentKeywords:           NewKeywordsStrategy(),
-			planner.IntentSentiment:          NewSentimentStrategy(),
-			planner.IntentCompareTone:        NewCompareToneStrategy(),
-			planner.IntentFindTopic:          NewFindTopicStrategy(),
-			planner.IntentComparePositive:    NewComparePositivityStrategy(),
-			planner.IntentFindCommonEntities: NewFindCommonEntitiesStrategy(),
+			planner.IntentSummarize:           NewSummarizeStrategy(),
+			planner.IntentKeywords:            NewKeywordsStrategy(),
+			planner.IntentSentiment:           NewSentimentStrategy(),
+			planner.IntentCompareTone:         NewCompareToneStrategy(),
+			planner.IntentFindTopic:           NewFindTopicStrategy(),
+			planner.IntentComparePositive:     NewComparePositivityStrategy(),
+			planner.IntentFindCommonEntities:  NewFindCommonEntitiesStrategy(),
+			planner.IntentCompareAllSentiment: NewCompareAllSentimentStrategy(),
 		},
 	}
 }

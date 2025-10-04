@@ -1,0 +1,145 @@
+{
+  "timestamp": "2025-10-04T13:38:35Z",
+  "test_summary": {
+    "total_tests": 10,
+    "passed_tests": 10,
+    "failed_tests": 0,
+    "success_rate": 100,
+    "total_time": 29
+  },
+  "api_info": {
+    "base_url": "http://localhost:8080",
+    "endpoints_tested": ["/chat", "/articles"]
+  },
+  "tests": [
+{
+  "name": "Article Summarization",
+  "query": "Summarize the article https://techcrunch.com/2025/07/25/sam-altman-warns-theres-no-legal-confidentiality-when-using-chatgpt-as-a-therapist/",
+  "expected_intent": "SUMMARIZE",
+  "status": "PASSED",
+  "duration": 1.0,
+  "should_contain": "article",
+  "content_check": "FAILED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\nSam Altman highlights the lack of legal confidentiality for users' conversations when using ChatGPT as a therapist due to the absence of a legal or policy framework for AI."
+  }
+}
+,
+{
+  "name": "Keywords Extraction",
+  "query": "Extract keywords from the article https://techcrunch.com/2025/07/25/sam-altman-warns-theres-no-legal-confidentiality-when-using-chatgpt-as-a-therapist/",
+  "expected_intent": "KEYWORDS",
+  "status": "PASSED",
+  "duration": 1.0,
+  "should_contain": "keywords",
+  "content_check": "FAILED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\nSam Altman highlights the lack of legal confidentiality for users' conversations when using ChatGPT as a therapist due to the absence of a legal or policy framework for AI."
+  }
+}
+,
+{
+  "name": "Sentiment Analysis",
+  "query": "What is the sentiment of the article https://techcrunch.com/2025/07/27/wizard-of-oz-blown-up-by-ai-for-giant-sphere-screen/?",
+  "expected_intent": "SENTIMENT",
+  "status": "PASSED",
+  "duration": 1.0,
+  "should_contain": "sentiment",
+  "content_check": "PASSED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\nSentiment Analysis Results:\n\nArticle 1: '‘The Wizard of Oz’ blown up by AI for giant Sphere screen' - Sentiment: 0.20 (positive) (0.20)"
+  }
+}
+,
+{
+  "name": "Topic Search",
+  "query": "What articles discuss AI regulation?",
+  "expected_intent": "FIND_BY_TOPIC",
+  "status": "PASSED",
+  "duration": 3.0,
+  "should_contain": "articles",
+  "content_check": "PASSED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\n1. The articles do not specifically address AI regulation but focus on tariffs, public opinion, and President Trump's actions despite opposition.\n\n2. From the articles, it can be inferred that regulations and policies, such as tariffs, can face resistance from various sectors, including Wall Street and Republicans. Despite opposition and concerns about legality, certain decisions and actions may still be pushed forward by those in power.\n\n3. Important details mentioned in the articles include the ongoing debate and opposition surrounding President Trump's tariff policies, the involvement of key entities such as Wall Street and Republicans, and the determination of the president to continue implementing tariffs despite challenges.\n\n4. The findings from these articles might suggest broader implications for AI regulation, such as the potential for regulations to face resistance and opposition from various stakeholders. It highlights the importance of considering public opinion, legal concerns, and political dynamics in shaping regulatory policies. Additionally, it underscores the challenges of implementing and enforcing regulations in the face of strong opposition and conflicting interests."
+  }
+}
+,
+{
+  "name": "Entity Extraction",
+  "query": "What are the most commonly discussed entities across all articles?",
+  "expected_intent": "FIND_COMMON_ENTITIES",
+  "status": "PASSED",
+  "duration": 1.0,
+  "should_contain": "entities",
+  "content_check": "PASSED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\nFound 10 entities:\n- Donald Trump: 4 occurrences\n- United States: 3 occurrences\n- European Union: 2 occurrences\n- Intel: 2 occurrences\n- Meta: 2 occurrences\n- Allianz: 1 occurrences\n- Allianz Life: 1 occurrences\n- Astronomer: 1 occurrences\n- Boston: 1 occurrences\n- CBS Sunday Morning: 1 occurrences\n"
+  }
+}
+,
+{
+  "name": "Tone Comparison",
+  "query": "What are the key differences in tone between https://techcrunch.com/2025/07/25/sam-altman-warns-theres-no-legal-confidentiality-when-using-chatgpt-as-a-therapist/ and https://techcrunch.com/2025/07/25/meta-names-shengjia-zhao-as-chief-scientist-of-ai-superintelligence-unit/?",
+  "expected_intent": "COMPARE_TONE",
+  "status": "PASSED",
+  "duration": 3.0,
+  "should_contain": "tone",
+  "content_check": "PASSED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\nArticle 1 has a more critical and cautionary tone compared to Article 2, which has a more informative and neutral tone. \n\nIn terms of formality, Article 1 seems to be more informal and conversational in its approach, while Article 2 is more formal and straightforward. \n\nThe perspective in Article 1 is focused on the potential risks and concerns regarding the lack of legal safeguards for users' confidentiality, whereas Article 2 focuses on the appointment of Shengjia Zhao as the chief scientist of Meta's AI superintelligence unit.\n\nAn example from Article 1: \"Sam Altman highlights the lack of legal confidentiality for users' conversations when using ChatGPT as a therapist due to the absence of a legal or policy framework for AI.\"\n\nAn example from Article 2: \"Meta has appointed Shengjia Zhao as the chief scientist of its AI superintelligence unit. Zhao, a former researcher at OpenAI, will be part of the leadership team at Meta's new AI lab.\""
+  }
+}
+,
+{
+  "name": "Positivity Comparison",
+  "query": "Which article is more positive about AI: https://techcrunch.com/2025/07/25/sam-altman-warns-theres-no-legal-confidentiality-when-using-chatgpt-as-a-therapist/ or https://techcrunch.com/2025/07/25/meta-names-shengjia-zhao-as-chief-scientist-of-ai-superintelligence-unit/?",
+  "expected_intent": "COMPARE_POSITIVITY",
+  "status": "PASSED",
+  "duration": 3.0,
+  "should_contain": "positive",
+  "content_check": "PASSED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\n- The first article about ChatGPT mentions a lack of legal confidentiality for users' conversations, indicating a potential negative sentiment towards AI in terms of privacy and security.\n- The second article about Meta appointing Shengjia Zhao as chief scientist of their AI superintelligence unit conveys a positive sentiment by highlighting the leadership team expansion and the expertise brought by Zhao.\n\nBased on the sentiment analysis, the article about Meta naming Shengjia Zhao as chief scientist of their AI superintelligence unit is the most positive about AI. This is because it focuses on the advancement and growth in the field of AI with the addition of a talented and experienced individual like Zhao, rather than highlighting potential issues or drawbacks like in the first article."
+  }
+}
+,
+{
+  "name": "Economic Trends Search",
+  "query": "What articles discuss economic trends?",
+  "expected_intent": "FIND_BY_TOPIC",
+  "status": "PASSED",
+  "duration": 3.0,
+  "should_contain": "economic",
+  "content_check": "PASSED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\n1. The articles reveal that economic trends are being impacted by President Trump's imposition of tariffs, despite opposition from various sectors such as Wall Street, Republicans, and some courts. These tariffs are part of the president's agenda, even though they face challenges in terms of legality and public opinion.\n\n2. Key insights, trends, or patterns related to economic trends include:\n- President Trump's persistence in implementing tariff-heavy policies despite opposition\n- Concerns about the legality of these tariffs and the impact on trade relations\n- Resistance from Wall Street and Republicans to these tariffs\n- The potential for more tariffs to be imposed in the near future\n\n3. Important details, statistics, or developments mentioned in the articles include:\n- The ongoing push by President Trump to impose tariffs despite pushback from various sectors\n- Public disapproval of these tariffs\n- Legal challenges to the tariffs in certain courts\n- The potential for more tariffs to be imposed in the coming weeks\n\n4. These findings have broader implications for the economy, trade relations, and the business environment. The imposition of tariffs can disrupt trade flows, increase the cost of goods for consumers, and potentially lead to retaliatory measures from other countries. The resistance from Wall Street and Republicans suggests concerns about the impact of these tariffs on the overall economic stability and growth. The legal challenges also point to the uncertainty and potential risks associated with President Trump's trade policies. Overall, these developments highlight the complex and evolving nature of economic trends in the current political and economic climate."
+  }
+}
+,
+{
+  "name": "General Article Search",
+  "query": "Find articles about technology companies",
+  "expected_intent": "FIND_BY_TOPIC",
+  "status": "PASSED",
+  "duration": 3.0,
+  "should_contain": "technology",
+  "content_check": "PASSED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\n1. The articles reveal that technology companies are heavily affected by President Trump's tariff policies. Despite opposition from various groups, including Wall Street and Republicans, the president is continuing to implement tariffs, which have significant implications for technology companies.\n\n2. Key insights, trends, or patterns related to technology companies include:\n- Technology companies are facing uncertainty and challenges due to the tariffs imposed by President Trump.\n- The public disapproval of these tariffs suggests that there is widespread concern about the impact on various industries, including technology.\n- The fact that the president is determined to impose more tariffs in the future indicates that technology companies may face even more challenges in the coming weeks.\n\n3. Important details, statistics, or developments mentioned in the articles include:\n- Wall Street and some courts have tried to stop President Trump's tariffs, but they are still in place.\n- Despite concerns about the legality of the tariffs, the president is pushing forward with his tariff-heavy agenda.\n- The articles indicate that there is resistance and pushback against the tariffs, but it has not been enough to stop their implementation.\n\n4. These findings have broader implications for technology companies, as they highlight the significant impact that tariff policies can have on the industry. The uncertainty and challenges posed by the tariffs can affect technology companies' operations, profitability, and competitiveness in the global market. Additionally, the public disapproval of these tariffs suggests that there is a need for a more balanced and thoughtful approach to trade policies that take into account the interests of various industries, including technology. The persistence of these tariffs despite opposition from key stakeholders like Wall Street and Republicans underscores the complexity and contentious nature of trade policies and their impact on technology companies."
+  }
+}
+,
+{
+  "name": "Multiple Article Analysis",
+  "query": "Compare the sentiment of all articles about AI",
+  "expected_intent": "SENTIMENT",
+  "status": "PASSED",
+  "duration": 1.0,
+  "should_contain": "sentiment",
+  "content_check": "PASSED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\nPlease specify which article you want to analyze sentiment for."
+  }
+}
+  ]
+}
