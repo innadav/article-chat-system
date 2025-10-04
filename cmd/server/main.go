@@ -55,7 +55,7 @@ func main() {
 	strategyExecutor := strategies.NewExecutor()
 
 	// Initialize vector repository (Weaviate)
-	vecRepo, err := repository.NewVectorRepository(cfg.WeaviateURL)
+	vecRepo, err := repository.NewVectorRepository(cfg.WeaviateHost, cfg.WeaviateScheme)
 	if err != nil {
 		log.Printf("Warning: Failed to initialize Weaviate repository: %v", err)
 		log.Println("Falling back to simple vector service...")
@@ -73,7 +73,7 @@ func main() {
 		vectorSvc = vector.NewSimpleVectorService(articleSvc)
 	} else {
 		// Use the existing Weaviate service as fallback
-		weaviateSvc, err := vector.NewWeaviateService(cfg.WeaviateURL, cfg.WeaviateAPIKey)
+		weaviateSvc, err := vector.NewWeaviateService(cfg.WeaviateHost, cfg.WeaviateScheme, cfg.WeaviateAPIKey)
 		if err != nil {
 			log.Printf("Warning: Failed to initialize Weaviate service: %v", err)
 			vectorSvc = vector.NewSimpleVectorService(articleSvc)

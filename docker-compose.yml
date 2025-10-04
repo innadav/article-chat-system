@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   api:
     build:
@@ -11,6 +10,8 @@ services:
       - LLM_PROVIDER=openai
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - WEAVIATE_HOST=weaviate:8080
+      - WEAVIATE_SCHEME=http
     depends_on:
       - postgres
       - weaviate

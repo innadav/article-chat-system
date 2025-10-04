@@ -115,6 +115,15 @@ func (f *Factory) CreateEntityExtractionPrompt(title, excerpt string) (string, e
 	return f.executeTemplate("entity_extraction", data)
 }
 
+// CreateFindTopicPrompt generates a prompt for finding and synthesizing articles about a topic
+func (f *Factory) CreateFindTopicPrompt(topic string, articles []*models.Article) (string, error) {
+	data := map[string]interface{}{
+		"Topic":    topic,
+		"Articles": articles,
+	}
+	return f.executeTemplate("find_topic", data)
+}
+
 // CreateComparePositivityPrompt generates a prompt for comparing positivity across articles
 func (f *Factory) CreateComparePositivityPrompt(topic string, articles []*models.Article) (string, error) {
 	data := map[string]interface{}{

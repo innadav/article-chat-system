@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 
 	"article-chat-system/internal/article"
 	"article-chat-system/internal/planner"
@@ -23,48 +22,35 @@ func NewFindTopicStrategy() *FindTopicStrategy {
 }
 
 func (s *FindTopicStrategy) findTopicArticles(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory, vectorSvc vector.Service) (string, error) {
-	log.Println("FIND TOPIC STRATEGY: Performing topic search logic...")
+	log.Println("FIND TOPIC STRATEGY: Performing vector search and synthesis...")
 
 	if len(plan.Parameters) == 0 {
 		return "Please specify a topic to search for.", nil
 	}
+	topic := plan.Parameters[0]
 
-	topic := strings.Join(plan.Parameters, " ")
-
-	// Get all articles from database
-	allArticles := articleSvc.GetAllArticles(ctx)
-	if len(allArticles) == 0 {
-		return "No articles found in the database.", nil
+	// 1. Perform Semantic Search (Vector Search)
+	// Instead of getting all articles, we ask the article service (which uses Weaviate)
+	// to find the top 3 most relevant articles for the topic.
+	relevantArticles, err := articleSvc.SearchSimilarArticles(ctx, topic, 3)
+	if err != nil {
+		return "", fmt.Errorf("vector search failed: %w", err)
 	}
 
-	// Filter articles that match the topic
-	var matchingArticles []string
-	var articleSummaries []string
-
-	for _, art := range allArticles {
-		// Check if article topics contain the search term or if summary mentions it
-		articleText := strings.ToLower(art.Title + " " + art.Summary + " " + strings.Join(art.Topics, " "))
-		searchTerm := strings.ToLower(topic)
-
-		if strings.Contains(articleText, searchTerm) {
-			matchingArticles = append(matchingArticles, fmt.Sprintf("%d. %s", len(matchingArticles)+1, art.Title))
-			articleSummaries = append(articleSummaries, fmt.Sprintf("Article %d: %s\nSummary: %s", len(articleSummaries)+1, art.Title, art.Summary))
-		}
+	// 2. Handle No Results
+	if len(relevantArticles) == 0 {
+		return fmt.Sprintf("I could not find any articles discussing '%s'.", topic), nil
 	}
 
-	if len(matchingArticles) == 0 {
-		return fmt.Sprintf("No articles found discussing '%s'.", topic), nil
+	// 3. Craft a Synthesis Prompt for the LLM
+	// We now have a small, highly relevant list of articles. We'll ask the LLM
+	// to create a final answer based on their content.
+	prompt, err := promptFactory.CreateFindTopicPrompt(topic, relevantArticles)
+	if err != nil {
+		return "", err
 	}
 
-	// Create a comprehensive response
-	result := fmt.Sprintf("Found %d articles discussing '%s':\n\n", len(matchingArticles), topic)
-	result += strings.Join(matchingArticles, "\n")
-
-	// Add detailed analysis if there are matching articles
-	if len(articleSummaries) > 0 {
-		result += "\n\nDetailed Analysis:\n"
-		result += strings.Join(articleSummaries, "\n\n")
-	}
-
-	return result, nil
+	// 4. Call the LLM for the Final Answer
+	// The LLM will generate a natural language response explaining what it found.
+	return articleSvc.CallSynthesisLLM(ctx, prompt)
 }

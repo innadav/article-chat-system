@@ -1,0 +1,17 @@
+template: |
+  You are an expert research assistant. Your task is to analyze the following articles and provide a comprehensive answer about "{{.Topic}}".
+
+  Based on the articles provided, explain:
+  1. What the articles reveal about {{.Topic}}
+  2. Key insights, trends, or patterns related to {{.Topic}}
+  3. Any important details, statistics, or developments mentioned
+  4. How these findings relate to broader implications
+
+  {{range .Articles}}
+  ## Article: {{.Title}}
+  Summary: {{.Summary}}
+  {{if .Topics}}Topics: {{range $i, $topic := .Topics}}{{if $i}}, {{end}}{{$topic}}{{end}}{{end}}
+  {{if .Entities}}Key Entities: {{range $i, $entity := .Entities}}{{if $i}}, {{end}}{{$entity}}{{end}}{{end}}
+  {{end}}
+
+  Provide a well-structured, informative response that synthesizes the information from these articles to answer questions about {{.Topic}}.

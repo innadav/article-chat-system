@@ -16,7 +16,8 @@ type Config struct {
 	GoogleAPIKey       string
 	OpenAIAPIKey       string
 	PromptVersion      string
-	WeaviateURL        string
+	WeaviateHost       string
+	WeaviateScheme     string
 	WeaviateAPIKey     string
 }
 
@@ -34,7 +35,8 @@ func New() *Config {
 		GoogleAPIKey:   GetEnv("GEMINI_API_KEY", ""),
 		OpenAIAPIKey:   GetEnv("OPENAI_API_KEY", ""),
 		PromptVersion:  GetEnv("PROMPT_VERSION", "v1"),
-		WeaviateURL:    GetEnv("WEAVIATE_URL", "http://localhost:8081"),
+		WeaviateHost:   GetEnv("WEAVIATE_HOST", "localhost:8081"),
+		WeaviateScheme: GetEnv("WEAVIATE_SCHEME", "http"),
 		WeaviateAPIKey: GetEnv("WEAVIATE_API_KEY", ""),
 		InitialArticleURLs: []string{
 			"https://techcrunch.com/2025/07/26/astronomer-winks-at-viral-notoriety-with-temporary-spokesperson-gwyneth-paltrow/",

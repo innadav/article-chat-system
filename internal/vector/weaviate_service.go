@@ -15,15 +15,15 @@ import (
 
 // WeaviateService implements vector operations using Weaviate
 type WeaviateService struct {
-	client  *weaviate.Client
-	class   string
+	client *weaviate.Client
+	class  string
 }
 
 // NewWeaviateService creates a new Weaviate service
-func NewWeaviateService(weaviateURL, apiKey string) (*WeaviateService, error) {
+func NewWeaviateService(host, scheme, apiKey string) (*WeaviateService, error) {
 	config := weaviate.Config{
-		Host:   weaviateURL,
-		Scheme: "http",
+		Host:   host,
+		Scheme: scheme,
 	}
 
 	if apiKey != "" {
@@ -130,12 +130,12 @@ func (w *WeaviateService) SearchByTopics(ctx context.Context, topics []string, l
 			WithPath([]string{"title"}).
 			WithOperator(filters.Like).
 			WithValueText("*" + topic + "*")
-		
+
 		summaryCondition := filters.Where().
 			WithPath([]string{"summary"}).
 			WithOperator(filters.Like).
 			WithValueText("*" + topic + "*")
-		
+
 		topicCondition := filters.Where().
 			WithPath([]string{"topics"}).
 			WithOperator(filters.ContainsAny).
@@ -145,7 +145,7 @@ func (w *WeaviateService) SearchByTopics(ctx context.Context, topics []string, l
 		topicOrCondition := filters.Where().
 			WithOperator(filters.Or).
 			WithOperands([]*filters.WhereBuilder{titleCondition, summaryCondition, topicCondition})
-		
+
 		conditions = append(conditions, topicOrCondition)
 	}
 
@@ -284,12 +284,12 @@ func (w *WeaviateService) parseSearchResults(result interface{}) ([]*models.Arti
 
 	for _, item := range articleList {
 		articleData := item.(map[string]interface{})
-		
+
 		article := &models.Article{
-			URL:     getString(articleData["url"]),
-			Title:   getString(articleData["title"]),
-			Excerpt: getString(articleData["excerpt"]),
-			Summary: getString(articleData["summary"]),
+			URL:       getString(articleData["url"]),
+			Title:     getString(articleData["title"]),
+			Excerpt:   getString(articleData["excerpt"]),
+			Summary:   getString(articleData["summary"]),
 			Sentiment: getString(articleData["sentiment"]),
 		}
 

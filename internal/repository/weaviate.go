@@ -19,14 +19,15 @@ type VectorRepository struct {
 	client *weaviate.Client
 }
 
-func NewVectorRepository(host string) (*VectorRepository, error) {
+func NewVectorRepository(host, scheme string) (*VectorRepository, error) {
+	// The client config now correctly uses separate fields for Scheme and Host.
 	cfg := weaviate.Config{
 		Host:   host,
-		Scheme: "http",
+		Scheme: scheme,
 	}
 	client, err := weaviate.NewClient(cfg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not create weaviate client: %w", err)
 	}
 
 	repo := &VectorRepository{client: client}
@@ -59,12 +60,12 @@ func (r *VectorRepository) ensureSchemaExists(ctx context.Context) error {
 			{Name: "entities", DataType: []string{"text[]"}},
 		},
 	}
-	
+
 	err = r.client.Schema().ClassCreator().WithClass(classObj).Do(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create Weaviate class: %w", err)
 	}
-	
+
 	log.Printf("Created Weaviate class: %s", ArticleClassName)
 	return nil
 }
@@ -77,25 +78,25 @@ func (r *VectorRepository) SaveArticle(ctx context.Context, art *models.Article)
 	objectID = strings.ReplaceAll(objectID, ".", "_")
 
 	properties := map[string]interface{}{
-		"url":      art.URL,
-		"title":    art.Title,
-		"summary":  art.Summary,
-		"excerpt":  art.Excerpt,
+		"url":       art.URL,
+		"title":     art.Title,
+		"summary":   art.Summary,
+		"excerpt":   art.Excerpt,
 		"sentiment": art.Sentiment,
-		"topics":   art.Topics,
-		"entities": art.Entities,
+		"topics":    art.Topics,
+		"entities":  art.Entities,
 	}
-	
+
 	_, err := r.client.Data().Creator().
 		WithClassName(ArticleClassName).
 		WithID(objectID).
 		WithProperties(properties).
 		Do(ctx)
-	
+
 	if err != nil {
 		return fmt.Errorf("failed to save article to Weaviate: %w", err)
 	}
-	
+
 	log.Printf("Saved article to Weaviate: %s", art.Title)
 	return nil
 }
@@ -119,7 +120,7 @@ func (r *VectorRepository) SearchSimilarArticles(ctx context.Context, queryText 
 		WithNearText(nearText).
 		WithLimit(limit).
 		Do(ctx)
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to search articles in Weaviate: %w", err)
 	}
@@ -127,15 +128,15 @@ func (r *VectorRepository) SearchSimilarArticles(ctx context.Context, queryText 
 	var articles []*models.Article
 	data := result.Data["Get"].(map[string]interface{})
 	items := data[ArticleClassName].([]interface{})
-	
+
 	for _, item := range items {
 		itemMap := item.(map[string]interface{})
-		
+
 		article := &models.Article{
-			URL:      getString(itemMap["url"]),
-			Title:    getString(itemMap["title"]),
-			Summary:  getString(itemMap["summary"]),
-			Excerpt:  getString(itemMap["excerpt"]),
+			URL:       getString(itemMap["url"]),
+			Title:     getString(itemMap["title"]),
+			Summary:   getString(itemMap["summary"]),
+			Excerpt:   getString(itemMap["excerpt"]),
 			Sentiment: getString(itemMap["sentiment"]),
 		}
 
@@ -159,7 +160,7 @@ func (r *VectorRepository) SearchSimilarArticles(ctx context.Context, queryText 
 
 		articles = append(articles, article)
 	}
-	
+
 	log.Printf("Found %d similar articles for query: %s", len(articles), queryText)
 	return articles, nil
 }
