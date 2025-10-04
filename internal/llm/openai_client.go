@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 
 	"github.com/sashabaranov/go-openai"
 	"go.opentelemetry.io/otel"
@@ -78,6 +79,24 @@ func (c *openaiClient) GenerateContent(ctx context.Context, prompt string) (*Res
 	responseText := resp.Choices[0].Message.Content
 	// 3. Add the response to the span as another attribute.
 	span.SetAttributes(attribute.String("llm.response", responseText))
+
+	// 4. Add token usage information to the trace and log
+	// Log usage information for debugging
+	slog.Info("LLM API response received",
+		"provider", "openai",
+		"model", c.model,
+		"usage_total_tokens", resp.Usage.TotalTokens,
+		"usage_prompt_tokens", resp.Usage.PromptTokens,
+		"usage_completion_tokens", resp.Usage.CompletionTokens,
+	)
+
+	if resp.Usage.TotalTokens > 0 {
+		span.SetAttributes(
+			attribute.Int("llm.usage.prompt_tokens", resp.Usage.PromptTokens),
+			attribute.Int("llm.usage.completion_tokens", resp.Usage.CompletionTokens),
+			attribute.Int("llm.usage.total_tokens", resp.Usage.TotalTokens),
+		)
+	}
 
 	return &Response{
 		Text: responseText,
