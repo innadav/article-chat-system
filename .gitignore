@@ -1,1 +1,4 @@
 .env
+
+# Test results and reports
+test_results/
