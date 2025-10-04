@@ -1,7 +1,7 @@
 template: |
   You are an expert analyst. Your task is to determine which of the following articles is the most positive about the topic of "{{.Topic}}".
 
-  Follow these steps:
+  First, think step-by-step:
   1. For each article, briefly analyze its sentiment specifically regarding "{{.Topic}}".
   2. Compare your analyses.
   3. Conclude by stating which article is the most positive and provide a brief justification based on your analysis.

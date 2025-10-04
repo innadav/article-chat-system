@@ -1,3 +1,5 @@
 template: |
-  Compare tone across these summaries:
-  {{.Content}}
+  Compare the tone and sentiment of the following two articles. Explain the key differences in a few sentences.
+
+  ### Article 1: {{.Article1Title}}
+  ### Article 2: {{.Article2Title}}

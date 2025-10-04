@@ -1,3 +1,1 @@
-template: |
-  Analyze the sentiment of this text and return only a number between -1 (very negative) and 1 (very positive):
-  {{.Content}}
+template: "Analyze the sentiment of the article titled '{{.Title}}'. Respond with a single word: Positive, Negative, or Neutral."

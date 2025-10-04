@@ -5,18 +5,9 @@ template: |
   "{{.Topic}}"
 
   ## Provided Article Excerpts:
-  {{range .Articles}}
-  ## Article: {{.Title}}
-  Summary: {{.Summary}}
-  {{if .Topics}}Topics: {{range $i, $topic := .Topics}}{{if $i}}, {{end}}{{$topic}}{{end}}{{end}}
-  {{if .Entities}}Key Entities: {{range $i, $entity := .Entities}}{{if $i}}, {{end}}{{$entity}}{{end}}{{end}}
-  {{end}}
+  {{.Articles}}
 
   ## Instructions:
   1. Read the user's question and the provided excerpts carefully.
   2. Synthesize an answer to the question using information found exclusively in the excerpts.
-  3. **CRITICAL: If the excerpts do not contain relevant information to answer the question, you must respond with "I could not find any articles that directly discuss that topic."**
-  4. Do not make assumptions or provide information not present in the excerpts.
-  5. Focus specifically on the topic mentioned in the user's question.
-
-  Provide a well-structured, informative response that synthesizes the information from these articles to answer questions about {{.Topic}}.
+  3. If the excerpts do not contain relevant information to answer the question, you must respond with "I could not find any articles that directly discuss that topic."
