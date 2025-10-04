@@ -13,7 +13,6 @@ type Config struct {
 	Port               string
 	InitialArticleURLs []string
 	LLMProvider        string
-	GoogleAPIKey       string
 	OpenAIAPIKey       string
 	PromptVersion      string
 	WeaviateHost       string
@@ -32,7 +31,6 @@ func New() *Config {
 		DatabaseURL:    GetEnv("DATABASE_URL", "postgres://user:password@localhost:5433/articledb?sslmode=disable"),
 		Port:           GetEnv("PORT", "8080"),
 		LLMProvider:    GetEnv("LLM_PROVIDER", "openai"),
-		GoogleAPIKey:   GetEnv("GEMINI_API_KEY", ""),
 		OpenAIAPIKey:   GetEnv("OPENAI_API_KEY", ""),
 		PromptVersion:  GetEnv("PROMPT_VERSION", "v1"),
 		WeaviateHost:   GetEnv("WEAVIATE_HOST", "localhost:8081"),

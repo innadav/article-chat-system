@@ -51,6 +51,15 @@ func (m *mockRepository) FindAll(ctx context.Context) ([]*models.Article, error)
 	return articles, nil
 }
 
+func (m *mockRepository) FindTopEntities(ctx context.Context, articleURLs []string, limit int) ([]repository.EntityCount, error) {
+	// Mock implementation - return some test entities
+	return []repository.EntityCount{
+		{Entity: "AI", Count: 5},
+		{Entity: "Technology", Count: 3},
+		{Entity: "Innovation", Count: 2},
+	}, nil
+}
+
 // mockLLMClient is a mock implementation of the llm.Client interface
 type mockLLMClient struct {
 	response *llm.Response
@@ -132,7 +141,7 @@ func TestArticleService_GetAllArticles(t *testing.T) {
 	mockRepo.articles["url2"] = &models.Article{URL: "url2", Title: "Article 2"}
 
 	mockLLM := newMockLLMClient()
-	service := article.NewService(mockLLM, mockRepo)
+	service := article.NewService(mockLLM, mockRepo, nil)
 
 	articles := service.GetAllArticles(context.Background())
 
@@ -144,7 +153,7 @@ func TestArticleService_GetAllArticles(t *testing.T) {
 func TestArticleService_StoreArticle(t *testing.T) {
 	mockRepo := newMockRepository()
 	mockLLM := newMockLLMClient()
-	service := article.NewService(mockLLM, mockRepo)
+	service := article.NewService(mockLLM, mockRepo, nil)
 
 	article := &models.Article{
 		URL:         "https://example.com/test",

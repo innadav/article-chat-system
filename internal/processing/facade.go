@@ -177,10 +177,12 @@ func (f *Facade) AddNewArticle(ctx context.Context, url string) (*models.Article
 		return nil, fmt.Errorf("failed to store article: %w", err)
 	}
 
-	// 4. Save content to Weaviate for vectorization and search
-	if err := f.vecRepo.SaveArticle(ctx, newArticle); err != nil {
-		log.Printf("WARNING: Failed to save article vector for %s: %v", url, err)
-		// We can choose to not fail the whole operation if vectorization fails.
+	// 4. Save content to Weaviate for vectorization and search (if available)
+	if f.vecRepo != nil {
+		if err := f.vecRepo.SaveArticle(ctx, newArticle); err != nil {
+			log.Printf("WARNING: Failed to save article vector for %s: %v", url, err)
+			// We can choose to not fail the whole operation if vectorization fails.
+		}
 	}
 
 	// 5. Index the article in the vector database (fallback)

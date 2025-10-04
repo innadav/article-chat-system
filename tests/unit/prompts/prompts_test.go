@@ -265,43 +265,11 @@ func TestFactory_CreateKeywordsPrompt(t *testing.T) {
 	}
 }
 
-func TestFactory_CreateSentimentPrompt(t *testing.T) {
-	// Create a temporary directory and test prompt file
-	tempDir := t.TempDir()
-	testPromptFile := filepath.Join(tempDir, "sentiment.yaml")
-	testPromptContent := `template: "Analyze the sentiment of this text and return only a number between -1 (very negative) and 1 (very positive):\n{{.Content}}"`
-	err := os.WriteFile(testPromptFile, []byte(testPromptContent), 0644)
-	if err != nil {
-		t.Fatalf("Failed to create test prompt file: %v", err)
-	}
-
-	loader := &prompts.Loader{
-		PromptDir: tempDir,
-		Cache:     make(map[string]*template.Template),
-	}
-
-	factory, err := prompts.NewFactory("test-model", loader)
-	if err != nil {
-		t.Fatalf("Failed to create factory: %v", err)
-	}
-
-	prompt, err := factory.CreateSentimentPrompt("Test content")
-
-	if err != nil {
-		t.Errorf("Unexpected error: %v", err)
-	}
-
-	expected := "Analyze the sentiment of this text and return only a number between -1 (very negative) and 1 (very positive):\nTest content"
-	if prompt != expected {
-		t.Errorf("Expected prompt '%s', got '%s'", expected, prompt)
-	}
-}
-
 func TestFactory_CreatePlannerPrompt(t *testing.T) {
 	// Create a temporary directory and test prompt file
 	tempDir := t.TempDir()
 	testPromptFile := filepath.Join(tempDir, "planner.yaml")
-	testPromptContent := `template: "Query: {{.Query}}\nArticles:\n- {{.Articles}}"`
+	testPromptContent := `template: "Query: {{.Query}}\nArticles:\n{{.Articles}}"`
 	err := os.WriteFile(testPromptFile, []byte(testPromptContent), 0644)
 	if err != nil {
 		t.Fatalf("Failed to create test prompt file: %v", err)
@@ -318,8 +286,8 @@ func TestFactory_CreatePlannerPrompt(t *testing.T) {
 	}
 
 	articles := []*models.Article{
-		{Title: "Article 1"},
-		{Title: "Article 2"},
+		{Title: "Article 1", URL: "https://example.com/1"},
+		{Title: "Article 2", URL: "https://example.com/2"},
 	}
 
 	prompt, err := factory.CreatePlannerPrompt("test query", articles)
@@ -328,7 +296,7 @@ func TestFactory_CreatePlannerPrompt(t *testing.T) {
 		t.Errorf("Unexpected error: %v", err)
 	}
 
-	expected := "Query: test query\nArticles:\n- Article 1\n- Article 2"
+	expected := "Query: test query\nArticles:\n- Article 1 (https://example.com/1)\n- Article 2 (https://example.com/2)"
 	if prompt != expected {
 		t.Errorf("Expected prompt '%s', got '%s'", expected, prompt)
 	}

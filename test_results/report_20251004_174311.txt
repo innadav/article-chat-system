@@ -1,0 +1,21 @@
+Article Assistant Test Report
+============================
+Timestamp: Sat Oct  4 17:43:11 IDT 2025
+Total Tests: 10
+Passed: 8
+Failed: 2
+Success Rate: 80%
+Total Time: 0s
+
+Test Results:
+-------------
+Article Summarization: PASSED (0s)
+Keywords Extraction: PASSED (0s)
+Sentiment Analysis: PASSED (0s)
+Topic Search for AI Regulation: PASSED (0s)
+Entity Extraction: PASSED (0s)
+Tone Comparison: PASSED (0s)
+Positivity Comparison: PASSED (0s)
+Economic Trends Search: FAILED (0s)
+General Article Search: FAILED (0s)
+Multiple Article Analysis: PASSED (0s)

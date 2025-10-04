@@ -11,7 +11,10 @@ import (
 	"article-chat-system/internal/article"
 	"article-chat-system/internal/llm"
 	"article-chat-system/internal/processing"
+	"article-chat-system/internal/prompts"
 	"article-chat-system/internal/repository"
+	"article-chat-system/internal/vector"
+
 	_ "github.com/lib/pq"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -44,7 +47,7 @@ func setupTestWithDB(t *testing.T) (repository.ArticleRepository, func()) {
 		},
 		WaitingFor: wait.ForLog("database system is ready to accept connections").WithOccurrence(2).WithStartupTimeout(5 * time.Minute),
 	}
-	
+
 	pgContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
@@ -52,7 +55,7 @@ func setupTestWithDB(t *testing.T) (repository.ArticleRepository, func()) {
 	if err != nil {
 		t.Fatalf("could not start postgres container: %s", err)
 	}
-	
+
 	// Teardown function to terminate the container after the test.
 	teardown := func() {
 		if err := pgContainer.Terminate(ctx); err != nil {
@@ -63,12 +66,12 @@ func setupTestWithDB(t *testing.T) (repository.ArticleRepository, func()) {
 	host, _ := pgContainer.Host(ctx)
 	port, _ := pgContainer.MappedPort(ctx, "5432")
 	connStr := fmt.Sprintf("postgres://test:test@%s:%s/test?sslmode=disable", host, port.Port())
-	
+
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		t.Fatalf("could not connect to test postgres: %s", err)
 	}
-	
+
 	// Run the schema initialization script.
 	initSQL, err := os.ReadFile("../../scripts/init.sql")
 	if err != nil {
@@ -94,12 +97,27 @@ func TestFacade_AddNewArticle_WithDatabase(t *testing.T) {
 
 	mockLLM := &mockLLMClient{}
 	articleSvc := article.NewService(mockLLM, repo, nil)
-	facade := processing.NewFacade(mockLLM, articleSvc, nil, nil, nil)
-	
+
+	// Create a prompt factory for the integration test
+	promptLoader, err := prompts.NewLoader("v1")
+	if err != nil {
+		t.Fatalf("Failed to create prompt loader: %v", err)
+	}
+	promptFactory, err := prompts.NewFactory("test-model", promptLoader)
+	if err != nil {
+		t.Fatalf("Failed to create prompt factory: %v", err)
+	}
+
+	// Create a simple vector service for the integration test
+	vectorSvc := vector.NewSimpleVectorService(articleSvc)
+
+	// For integration test, we don't need Weaviate, so we pass nil for vecRepo
+	facade := processing.NewFacade(mockLLM, articleSvc, promptFactory, vectorSvc, nil)
+
 	testURL := "https://example.com/integration-test"
 
 	// ACT
-	_, err := facade.AddNewArticle(context.Background(), testURL)
+	_, err = facade.AddNewArticle(context.Background(), testURL)
 	if err != nil {
 		t.Fatalf("Facade.AddNewArticle() failed unexpectedly: %v", err)
 	}
@@ -127,7 +145,7 @@ func TestFacade_AddNewArticle_WithDatabase(t *testing.T) {
 	if len(savedArticle.Entities) != 5 {
 		t.Errorf("expected 5 entities, got %d", len(savedArticle.Entities))
 	}
-	
+
 	// Verify the summary contains the headline and key points
 	expectedSummary := "Test Article: Integration Testing with PostgreSQL\n- Database integration works\n- LLM analysis successful\n- Data persistence verified"
 	if savedArticle.Summary != expectedSummary {

@@ -82,17 +82,17 @@ func (f *Factory) executeTemplate(name string, data interface{}) (string, error)
 }
 
 // --- FIX: CreatePlannerPrompt now uses the external template ---
-func (f *Factory) CreatePlannerPrompt(query string, articleTitles []*models.Article) (string, error) {
-	var titles []string
-	for _, art := range articleTitles {
-		titles = append(titles, art.Title)
+func (f *Factory) CreatePlannerPrompt(query string, articles []*models.Article) (string, error) {
+	var articleInfo []string
+	for _, art := range articles {
+		articleInfo = append(articleInfo, fmt.Sprintf("- %s (%s)", art.Title, art.URL))
 	}
 	data := struct {
 		Query    string
 		Articles string
 	}{
 		Query:    query,
-		Articles: strings.Join(titles, "\n- "),
+		Articles: strings.Join(articleInfo, "\n"),
 	}
 	return f.executeTemplate("planner", data)
 }

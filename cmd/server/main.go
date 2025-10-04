@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"article-chat-system/internal/article"
+	"article-chat-system/internal/cache"
 	"article-chat-system/internal/config"
 	"article-chat-system/internal/llm"
 	"article-chat-system/internal/planner"
@@ -27,41 +29,65 @@ import (
 func main() {
 	ctx := context.Background()
 
-	// 1. Load Configuration
+	// 1. Create a new structured JSON logger
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+
+	// Set it as the default logger for the whole application
+	slog.SetDefault(logger)
+
+	logger.Info("Starting article chat system", "version", "1.0.0")
+
+	// 2. Load Configuration
 	cfg := config.New()
-	log.Printf("Configuration loaded. LLM Provider: %s, Prompt Version: %s", cfg.LLMProvider, cfg.PromptVersion)
+	logger.Info("Configuration loaded",
+		"llm_provider", cfg.LLMProvider,
+		"prompt_version", cfg.PromptVersion,
+		"database_url", cfg.DatabaseURL,
+		"port", cfg.Port)
 
 	// Initialize Database
 	repo, err := repository.NewPostgresRepository(cfg.DatabaseURL)
 	if err != nil {
+		logger.Error("Failed to initialize repository", "error", err)
 		log.Fatalf("Failed to initialize repository: %v", err)
 	}
 	// No need to defer db.Close() here, as it's handled by the repository
-	log.Println("Successfully connected to PostgreSQL.")
+	logger.Info("Successfully connected to PostgreSQL")
 
 	// 2. Initialize Core Components
 	llmClient, err := llm.NewClientFactory(ctx, cfg)
 	if err != nil {
+		logger.Error("Failed to create LLM client", "error", err)
 		log.Fatalf("Failed to create LLM client: %v", err)
 	}
+	logger.Info("LLM client created", "provider", cfg.LLMProvider)
+
 	promptLoader, err := prompts.NewLoader(cfg.PromptVersion)
 	if err != nil {
+		logger.Error("Failed to load prompts", "error", err, "version", cfg.PromptVersion)
 		log.Fatalf("Failed to load prompts: %v", err)
 	}
 	promptFactory, err := prompts.NewFactory(prompts.ModelGemini15Flash, promptLoader)
 	if err != nil {
+		logger.Error("Failed to create prompt factory", "error", err)
 		log.Fatalf("Failed to create prompt factory: %v", err)
 	}
 	strategyExecutor := strategies.NewExecutor()
 
+	// Initialize cache service for API-level caching
+	cacheSvc := cache.NewService()
+	logger.Info("Successfully initialized cache service")
+
 	// Initialize vector repository (Weaviate)
 	vecRepo, err := repository.NewVectorRepository(cfg.WeaviateHost, cfg.WeaviateScheme)
 	if err != nil {
-		log.Printf("Warning: Failed to initialize Weaviate repository: %v", err)
-		log.Println("Falling back to simple vector service...")
+		logger.Warn("Failed to initialize Weaviate repository", "error", err, "host", cfg.WeaviateHost)
+		logger.Info("Falling back to simple vector service")
 		vecRepo = nil
 	} else {
-		log.Println("Successfully initialized Weaviate repository")
+		logger.Info("Successfully initialized Weaviate repository", "host", cfg.WeaviateHost)
 	}
 
 	// 3. Initialize Services
@@ -71,14 +97,15 @@ func main() {
 	var vectorSvc vector.Service
 	if vecRepo == nil {
 		vectorSvc = vector.NewSimpleVectorService(articleSvc)
+		logger.Info("Using simple vector service")
 	} else {
 		// Use the existing Weaviate service as fallback
 		weaviateSvc, err := vector.NewWeaviateService(cfg.WeaviateHost, cfg.WeaviateScheme, cfg.WeaviateAPIKey)
 		if err != nil {
-			log.Printf("Warning: Failed to initialize Weaviate service: %v", err)
+			logger.Warn("Failed to initialize Weaviate service", "error", err)
 			vectorSvc = vector.NewSimpleVectorService(articleSvc)
 		} else {
-			log.Println("Successfully initialized Weaviate service")
+			logger.Info("Successfully initialized Weaviate service")
 			vectorSvc = weaviateSvc
 		}
 	}
@@ -88,28 +115,30 @@ func main() {
 
 	// 4. Initialize the Transport Layer (The Handler) LAST
 	apiHandler := handler.NewHandler(
+		logger,
 		articleSvc,
 		plannerSvc,
 		strategyExecutor,
 		promptFactory,
 		processingFacade,
 		vectorSvc,
+		cacheSvc,
 	)
 
 	// 5. Start Background Processes
 	go func() {
-		log.Println("Processing initial articles in the background...")
+		logger.Info("Processing initial articles in the background", "count", len(cfg.InitialArticleURLs))
 		for _, url := range cfg.InitialArticleURLs {
 			_, err := processingFacade.AddNewArticle(context.Background(), url)
 			if err != nil {
 				if strings.Contains(err.Error(), "already exists") {
-					log.Printf("Article already processed: %s", url)
+					logger.Debug("Article already processed", "url", url)
 				} else {
-					log.Printf("Failed to process initial URL %s: %v", url, err)
+					logger.Error("Failed to process initial URL", "url", url, "error", err)
 				}
 			}
 		}
-		log.Println("Initial article processing complete.")
+		logger.Info("Initial article processing complete")
 	}()
 
 	// 6. Start the Server
@@ -118,8 +147,9 @@ func main() {
 		Handler: apiHandler.Routes(),
 	}
 	go func() {
-		log.Println("Starting server on port 8080...")
+		logger.Info("Starting server", "port", "8080")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Error("Server failed to start", "error", err)
 			log.Fatalf("Could not listen on :8080: %v\n", err)
 		}
 	}()
@@ -128,11 +158,12 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop
-	log.Println("Shutting down server...")
+	logger.Info("Shutting down server")
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdownCancel()
 	if err := server.Shutdown(shutdownCtx); err != nil {
+		logger.Error("Server shutdown failed", "error", err)
 		log.Fatalf("Server shutdown failed: %v", err)
 	}
-	log.Println("Server gracefully stopped.")
+	logger.Info("Server gracefully stopped")
 }

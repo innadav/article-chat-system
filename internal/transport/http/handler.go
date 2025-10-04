@@ -2,10 +2,13 @@ package handler
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"strings"
 
 	"article-chat-system/internal/article"
+	"article-chat-system/internal/cache"
+
 	// "article-chat-system/internal/models"
 	"article-chat-system/internal/planner"
 	"article-chat-system/internal/processing"
@@ -20,30 +23,36 @@ import (
 
 // Handler now depends on the interfaces, not the concrete structs.
 type Handler struct {
+	logger           *slog.Logger         // Structured logger
 	articleSvc       article.Service      // Use interface
 	plannerSvc       planner.Service      // Use interface
 	strategyExecutor *strategies.Executor // Executor can be concrete if it has no interface, or use its interface
 	promptFactory    *prompts.Factory     // Factory can be concrete
 	processingFacade *processing.Facade   // Facade can be concrete
 	vectorSvc        vector.Service       // Vector service for semantic search
+	cacheSvc         *cache.Service       // Cache service for API-level caching
 }
 
 // NewHandler now accepts the interfaces as arguments.
 func NewHandler(
+	logger *slog.Logger,
 	articleSvc article.Service,
 	plannerSvc planner.Service,
 	strategyExecutor *strategies.Executor,
 	promptFactory *prompts.Factory,
 	processingFacade *processing.Facade,
 	vectorSvc vector.Service,
+	cacheSvc *cache.Service,
 ) *Handler {
 	return &Handler{
+		logger:           logger,
 		articleSvc:       articleSvc,
 		plannerSvc:       plannerSvc,
 		strategyExecutor: strategyExecutor,
 		promptFactory:    promptFactory,
 		processingFacade: processingFacade,
 		vectorSvc:        vectorSvc,
+		cacheSvc:         cacheSvc,
 	}
 }
 
@@ -95,16 +104,37 @@ func (h *Handler) handleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// --- NEW CACHING LOGIC ---
+	// 1. Generate the cache key from the raw query string immediately.
+	cacheKey := h.cacheSvc.GenerateCacheKey(query)
+
+	// 2. Check the cache BEFORE any LLM calls.
+	if cachedAnswer, found := h.cacheSvc.Get(cacheKey); found {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(ChatResponse{Answer: "🤖 (from cache)\n\n" + cachedAnswer})
+		return // Return immediately on a cache hit.
+	}
+	// --- END NEW CACHING LOGIC ---
+
+	// --- CACHE MISS: Proceed with the normal flow ---
+	// 3. Create a plan (First LLM call).
 	plan, err := h.plannerSvc.CreatePlan(r.Context(), query)
 	if err != nil {
 		http.Error(w, "Failed to create a query plan: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	// 4. Execute the plan (Potential second LLM call).
 	answer, err := h.strategyExecutor.ExecutePlan(r.Context(), plan, h.articleSvc, h.promptFactory, h.vectorSvc)
 	if err != nil {
 		http.Error(w, "Failed to execute the plan: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	// 5. Store the newly generated answer in the cache.
+	h.cacheSvc.Set(cacheKey, answer)
+
+	// 6. Return the response to the user.
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(ChatResponse{Answer: answer})
 }

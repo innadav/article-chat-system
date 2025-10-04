@@ -1,1 +1,3 @@
-template: "Analyze the sentiment of the article titled '{{.Title}}'. Respond with a single word: Positive, Negative, or Neutral."
+template: |
+  Analyze the sentiment of the article titled '{{.Title}}'. 
+  Your response MUST be a single word: Positive, Negative, or Neutral.

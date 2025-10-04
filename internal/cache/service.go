@@ -3,11 +3,7 @@ package cache
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
-	"sort"
 	"sync"
-
-	"article-chat-system/internal/planner"
 )
 
 // Service provides a simple in-memory cache for request hashing.
@@ -19,12 +15,9 @@ func NewService() *Service {
 	return &Service{}
 }
 
-// GenerateCacheKey creates a stable, unique hash for a given query plan.
-func (s *Service) GenerateCacheKey(plan *planner.QueryPlan) string {
-	// Sort targets to ensure the key is stable regardless of order.
-	sort.Strings(plan.Targets)
-	keyData := fmt.Sprintf("%s:%v:%v", plan.Intent, plan.Targets, plan.Parameters)
-	hash := sha256.Sum256([]byte(keyData))
+// GenerateCacheKey now creates a stable hash from a simple string.
+func (s *Service) GenerateCacheKey(query string) string {
+	hash := sha256.Sum256([]byte(query))
 	return hex.EncodeToString(hash[:])
 }
 

@@ -19,4 +19,12 @@ template: |
   "{{.Query}}"
 
   ## Instructions:
-  Analyze the user's query and the examples. Identify the single best 'intent', any 'targets' (URLs), and any 'parameters' (topics). Respond with ONLY the valid JSON object.
+  Analyze the user's query and the examples. Identify the single best 'intent', any 'targets' (URLs), and any 'parameters' (topics as array). Respond with ONLY the valid JSON object.
+
+  ## Expected JSON Format:
+  {
+    "intent": "SUMMARIZE",
+    "targets": ["https://example.com/article1", "https://example.com/article2"],
+    "parameters": ["topic1", "topic2"],
+    "question": "user's original question"
+  }

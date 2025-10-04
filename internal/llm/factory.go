@@ -11,13 +11,11 @@ import (
 func NewClientFactory(ctx context.Context, cfg *config.Config) (Client, error) {
 	provider := strings.ToLower(cfg.LLMProvider)
 	switch provider {
-	case "google", "gemini":
-		return newGeminiClient(ctx, cfg.GoogleAPIKey)
 	case "openai":
 		return newOpenAIClient(ctx, cfg.OpenAIAPIKey)
 	case "mock":
 		return newMockClient(), nil
 	default:
-		return nil, fmt.Errorf("unknown or unsupported LLM provider: %s", cfg.LLMProvider)
+		return nil, fmt.Errorf("unknown or unsupported LLM provider: %s. Supported providers: openai, mock", cfg.LLMProvider)
 	}
 }

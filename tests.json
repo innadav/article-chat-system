@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Article Summarization",
+    "query": "Summarize the article https://techcrunch.com/2025/07/25/sam-altman-warns-theres-no-legal-confidentiality-when-using-chatgpt-as-a-therapist/",
+    "should_contain": "Sam Altman"
+  },
+  {
+    "name": "Keywords Extraction",
+    "query": "Extract keywords from the article https://techcrunch.com/2025/07/25/sam-altman-warns-theres-no-legal-confidentiality-when-using-chatgpt-as-a-therapist/",
+    "should_contain": "ChatGPT"
+  },
+  {
+    "name": "Sentiment Analysis",
+    "query": "What is the sentiment of the article https://techcrunch.com/2025/07/27/wizard-of-oz-blown-up-by-ai-for-giant-sphere-screen/?",
+    "should_contain": "sentiment"
+  },
+  {
+    "name": "Topic Search for AI Regulation (Known to be Absent)",
+    "query": "What articles discuss AI regulation?",
+    "should_contain": "could not find"
+  },
+  {
+    "name": "Entity Extraction",
+    "query": "What are the most commonly discussed entities across all articles?",
+    "should_contain": "Meta"
+  },
+  {
+    "name": "Tone Comparison",
+    "query": "Compare the tone of the article about Sam Altman and the article about Meta AI",
+    "should_contain": "tone"
+  },
+  {
+    "name": "Positivity Comparison",
+    "query": "Which article is more positive about AI?",
+    "should_contain": "positive"
+  },
+  {
+    "name": "Economic Trends Search (Known to be Absent)",
+    "query": "What articles discuss economic trends?",
+    "should_contain": "could not find"
+  },
+  {
+    "name": "General Article Search (Technology Companies)",
+    "query": "What articles discuss technology companies?",
+    "should_contain": "could not find"
+  },
+  {
+    "name": "Multiple Article Analysis",
+    "query": "Compare the sentiment of all articles about AI",
+    "should_contain": "sentiment"
+  }
+]

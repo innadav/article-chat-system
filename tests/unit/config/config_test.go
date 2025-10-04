@@ -12,7 +12,7 @@ func TestNew(t *testing.T) {
 	originalDBURL := os.Getenv("DATABASE_URL")
 	originalPort := os.Getenv("PORT")
 	originalLLMProvider := os.Getenv("LLM_PROVIDER")
-	originalGoogleAPIKey := os.Getenv("GEMINI_API_KEY")
+	originalOpenAIAPIKey := os.Getenv("OPENAI_API_KEY")
 	originalPromptVersion := os.Getenv("PROMPT_VERSION")
 
 	// Clean up after test
@@ -32,10 +32,10 @@ func TestNew(t *testing.T) {
 		} else {
 			os.Unsetenv("LLM_PROVIDER")
 		}
-		if originalGoogleAPIKey != "" {
-			os.Setenv("GEMINI_API_KEY", originalGoogleAPIKey)
+		if originalOpenAIAPIKey != "" {
+			os.Setenv("OPENAI_API_KEY", originalOpenAIAPIKey)
 		} else {
-			os.Unsetenv("GEMINI_API_KEY")
+			os.Unsetenv("OPENAI_API_KEY")
 		}
 		if originalPromptVersion != "" {
 			os.Setenv("PROMPT_VERSION", originalPromptVersion)
@@ -56,7 +56,7 @@ func TestNew(t *testing.T) {
 				DatabaseURL:   "postgres://user:password@localhost:5433/articledb?sslmode=disable",
 				Port:          "8080",
 				LLMProvider:   "openai",
-				GoogleAPIKey:  "",
+				OpenAIAPIKey:  "",
 				PromptVersion: "v1",
 				InitialArticleURLs: []string{
 					"https://techcrunch.com/2025/07/26/astronomer-winks-at-viral-notoriety-with-temporary-spokesperson-gwyneth-paltrow/",
@@ -82,17 +82,17 @@ func TestNew(t *testing.T) {
 		{
 			name: "custom values from environment",
 			envVars: map[string]string{
-				"DATABASE_URL":    "postgres://custom:pass@localhost:5432/testdb",
-				"PORT":            "9090",
-				"LLM_PROVIDER":    "openai",
-				"GEMINI_API_KEY":  "test-api-key",
-				"PROMPT_VERSION":  "v2",
+				"DATABASE_URL":   "postgres://custom:pass@localhost:5432/testdb",
+				"PORT":           "9090",
+				"LLM_PROVIDER":   "openai",
+				"OPENAI_API_KEY": "test-api-key",
+				"PROMPT_VERSION": "v2",
 			},
 			expectedConfig: &config.Config{
 				DatabaseURL:   "postgres://custom:pass@localhost:5432/testdb",
 				Port:          "9090",
 				LLMProvider:   "openai",
-				GoogleAPIKey:  "test-api-key",
+				OpenAIAPIKey:  "test-api-key",
 				PromptVersion: "v2",
 				InitialArticleURLs: []string{
 					"https://techcrunch.com/2025/07/26/astronomer-winks-at-viral-notoriety-with-temporary-spokesperson-gwyneth-paltrow/",
@@ -123,7 +123,7 @@ func TestNew(t *testing.T) {
 			os.Unsetenv("DB_URL")
 			os.Unsetenv("PORT")
 			os.Unsetenv("LLM_PROVIDER")
-			os.Unsetenv("GEMINI_API_KEY")
+			os.Unsetenv("OPENAI_API_KEY")
 			os.Unsetenv("PROMPT_VERSION")
 
 			// Set test environment variables
@@ -145,8 +145,8 @@ func TestNew(t *testing.T) {
 				t.Errorf("Expected LLMProvider %s, got %s", tt.expectedConfig.LLMProvider, cfg.LLMProvider)
 			}
 
-			if cfg.GoogleAPIKey != tt.expectedConfig.GoogleAPIKey {
-				t.Errorf("Expected GoogleAPIKey %s, got %s", tt.expectedConfig.GoogleAPIKey, cfg.GoogleAPIKey)
+			if cfg.OpenAIAPIKey != tt.expectedConfig.OpenAIAPIKey {
+				t.Errorf("Expected OpenAIAPIKey %s, got %s", tt.expectedConfig.OpenAIAPIKey, cfg.OpenAIAPIKey)
 			}
 
 			if cfg.PromptVersion != tt.expectedConfig.PromptVersion {
