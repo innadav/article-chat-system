@@ -10,6 +10,7 @@ import (
 	"github.com/weaviate/weaviate-go-client/v4/weaviate"
 	"github.com/weaviate/weaviate-go-client/v4/weaviate/filters"
 	"github.com/weaviate/weaviate-go-client/v4/weaviate/graphql"
+	weaviate_models "github.com/weaviate/weaviate/entities/models"
 )
 
 // WeaviateService implements vector operations using Weaviate
@@ -62,9 +63,9 @@ func (w *WeaviateService) ensureClassExists() error {
 	}
 
 	// Create the class
-	class := &weaviate.Class{
+	class := &weaviate_models.Class{
 		Class: w.class,
-		Properties: []*weaviate.Property{
+		Properties: []*weaviate_models.Property{
 			{
 				Name:     "url",
 				DataType: []string{"string"},
@@ -197,9 +198,7 @@ func (w *WeaviateService) SearchBySemanticSimilarity(ctx context.Context, query 
 			graphql.Field{Name: "entities"},
 			graphql.Field{Name: "processedAt"},
 		).
-		WithNearText(&graphql.NearTextArgument{
-			Values: []string{query},
-		}).
+		WithNearText(w.client.GraphQL().NearTextArgBuilder().WithConcepts([]string{query})).
 		WithLimit(limit)
 
 	result, err := builder.Do(ctx)
@@ -264,15 +263,24 @@ func (w *WeaviateService) RemoveArticle(ctx context.Context, url string) error {
 }
 
 // parseSearchResults converts Weaviate search results to Article models
-func (w *WeaviateService) parseSearchResults(result *graphql.Response) ([]*models.Article, error) {
+func (w *WeaviateService) parseSearchResults(result interface{}) ([]*models.Article, error) {
 	var articles []*models.Article
 
-	if result.Errors != nil {
-		return nil, fmt.Errorf("graphql errors: %v", result.Errors)
+	// Type assertion to get the data
+	data, ok := result.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid result format")
 	}
 
-	data := result.Data["Get"].(map[string]interface{})
-	articleList := data[w.class].([]interface{})
+	getData, ok := data["Get"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid Get data format")
+	}
+
+	articleList, ok := getData[w.class].([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid article list format")
+	}
 
 	for _, item := range articleList {
 		articleData := item.(map[string]interface{})

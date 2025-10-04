@@ -114,3 +114,12 @@ func (f *Factory) CreateEntityExtractionPrompt(title, excerpt string) (string, e
 	data := struct{ Title, Excerpt string }{Title: title, Excerpt: excerpt}
 	return f.executeTemplate("entity_extraction", data)
 }
+
+// CreateComparePositivityPrompt generates a prompt for comparing positivity across articles
+func (f *Factory) CreateComparePositivityPrompt(topic string, articles []*models.Article) (string, error) {
+	data := map[string]interface{}{
+		"Topic":    topic,
+		"Articles": articles,
+	}
+	return f.executeTemplate("compare_positivity", data)
+}

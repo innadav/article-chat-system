@@ -54,23 +54,37 @@ func main() {
 	}
 	strategyExecutor := strategies.NewExecutor()
 
-	// 3. Initialize Services
-	articleSvc := article.NewService(llmClient, repo)
-
-	// Initialize vector service (Weaviate)
-	var vectorSvc vector.Service
-	weaviateSvc, err := vector.NewWeaviateService(cfg.WeaviateURL, cfg.WeaviateAPIKey)
+	// Initialize vector repository (Weaviate)
+	vecRepo, err := repository.NewVectorRepository(cfg.WeaviateURL)
 	if err != nil {
-		log.Printf("Warning: Failed to initialize Weaviate service: %v", err)
+		log.Printf("Warning: Failed to initialize Weaviate repository: %v", err)
 		log.Println("Falling back to simple vector service...")
-		vectorSvc = vector.NewSimpleVectorService(articleSvc)
+		vecRepo = nil
 	} else {
-		log.Println("Successfully initialized Weaviate service")
-		vectorSvc = weaviateSvc
+		log.Println("Successfully initialized Weaviate repository")
 	}
 
-	plannerSvc := planner.NewService(llmClient, promptFactory, articleSvc)
-	processingFacade := processing.NewFacade(llmClient, articleSvc, promptFactory, vectorSvc)
+	// 3. Initialize Services
+	articleSvc := article.NewService(llmClient, repo, vecRepo)
+
+	// Initialize vector service (fallback)
+	var vectorSvc vector.Service
+	if vecRepo == nil {
+		vectorSvc = vector.NewSimpleVectorService(articleSvc)
+	} else {
+		// Use the existing Weaviate service as fallback
+		weaviateSvc, err := vector.NewWeaviateService(cfg.WeaviateURL, cfg.WeaviateAPIKey)
+		if err != nil {
+			log.Printf("Warning: Failed to initialize Weaviate service: %v", err)
+			vectorSvc = vector.NewSimpleVectorService(articleSvc)
+		} else {
+			log.Println("Successfully initialized Weaviate service")
+			vectorSvc = weaviateSvc
+		}
+	}
+
+	plannerSvc := planner.NewService(llmClient, promptFactory, articleSvc, vecRepo)
+	processingFacade := processing.NewFacade(llmClient, articleSvc, promptFactory, vectorSvc, vecRepo)
 
 	// 4. Initialize the Transport Layer (The Handler) LAST
 	apiHandler := handler.NewHandler(

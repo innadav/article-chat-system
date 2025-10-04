@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 
 	"article-chat-system/internal/article"
 	"article-chat-system/internal/models"
@@ -19,68 +18,54 @@ type ComparePositivityStrategy struct {
 
 func NewComparePositivityStrategy() *ComparePositivityStrategy {
 	s := &ComparePositivityStrategy{}
-	s.doExecute = s.comparePositivityArticles
+	s.doExecute = s.comparePositivity
 	return s
 }
 
-func (s *ComparePositivityStrategy) comparePositivityArticles(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory, vectorSvc vector.Service) (string, error) {
-	log.Println("COMPARE POSITIVITY STRATEGY: Performing positivity comparison logic...")
-	log.Printf("COMPARE POSITIVITY: Plan targets: %v", plan.Targets)
-	log.Printf("COMPARE POSITIVITY: Plan parameters: %v", plan.Parameters)
+func (s *ComparePositivityStrategy) comparePositivity(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory, vectorSvc vector.Service) (string, error) {
+	log.Println("COMPARE POSITIVITY STRATEGY: Executing...")
+	if len(plan.Parameters) == 0 {
+		return "Please specify the topic for comparison.", nil
+	}
+	topic := plan.Parameters[0]
 
-	var articles []*models.Article
-	var err error
+	// --- LOGIC FOR THE NEW "FIND AND COMPARE" WORKFLOW ---
+	if len(plan.Targets) == 0 {
+		log.Println("No targets specified. Finding relevant articles first...")
 
-	// If we have parameters, search by topics in vector DB
-	if len(plan.Parameters) > 0 {
-		log.Printf("COMPARE POSITIVITY: Searching by parameters: %v", plan.Parameters)
-		articles, err = vectorSvc.SearchByTopics(ctx, plan.Parameters, 2)
+		// 1. Find candidate articles using vector search.
+		candidateArticles, err := articleSvc.SearchSimilarArticles(ctx, topic, 3) // Find top 3
 		if err != nil {
-			return "", fmt.Errorf("failed to search articles by topics: %w", err)
+			return "", fmt.Errorf("failed to find articles for comparison: %w", err)
 		}
-		log.Printf("COMPARE POSITIVITY: Found %d articles by topic search", len(articles))
-	} else if len(plan.Targets) >= 2 {
-		// Fallback to target-based search if no parameters
-		log.Printf("COMPARE POSITIVITY: Using target-based search")
-		for i, target := range plan.Targets {
-			if i >= 2 { // Limit to 2 articles for comparison
-				break
-			}
-
-			log.Printf("COMPARE POSITIVITY: Looking for article with target: %s", target)
-			art, ok := articleSvc.GetArticle(ctx, target)
-			if !ok {
-				log.Printf("COMPARE POSITIVITY: Article not found for target: %s", target)
-				return fmt.Sprintf("Article not found: %s", target), nil
-			}
-			articles = append(articles, art)
+		if len(candidateArticles) < 2 {
+			return "I could not find enough relevant articles to perform a comparison.", nil
 		}
-	} else {
-		return "Please provide topics/parameters to search for articles to compare, or specify at least two article URLs.", nil
+
+		// 2. Create the advanced prompt.
+		prompt, err := promptFactory.CreateComparePositivityPrompt(topic, candidateArticles)
+		if err != nil {
+			return "", err
+		}
+
+		// 3. Call the LLM for the final analysis.
+		return articleSvc.CallSynthesisLLM(ctx, prompt)
 	}
 
-	if len(articles) < 2 {
-		return fmt.Sprintf("Found only %d article(s) matching the criteria. Need at least 2 articles to compare positivity.", len(articles)), nil
+	// --- ORIGINAL LOGIC FOR COMPARING TWO SPECIFIC ARTICLES ---
+	if len(plan.Targets) < 2 {
+		return "Please specify at least two articles to compare.", nil
+	}
+	art1, ok1 := articleSvc.GetArticle(ctx, plan.Targets[0])
+	art2, ok2 := articleSvc.GetArticle(ctx, plan.Targets[1])
+	if !ok1 || !ok2 {
+		return "Could not find one or both of the specified articles.", nil
 	}
 
-	// Prepare articles for comparison
-	var summaries []string
-	for i, art := range articles[:2] { // Limit to first 2 articles
-		log.Printf("COMPARE POSITIVITY: Found article: %s, Summary length: %d", art.Title, len(art.Summary))
-		log.Printf("COMPARE POSITIVITY: Summary preview: %.100s...", art.Summary)
-
-		summaries = append(summaries, fmt.Sprintf("Article %d Summary: %s", i+1, art.Summary))
-	}
-
-	// Create comparison prompt focused on positivity
-	comparisonContent := strings.Join(summaries, "\n\n")
-	prompt := fmt.Sprintf("Compare the positivity and sentiment of these two articles:\n\n%s\n\nAnalyze which article is more positive, optimistic, or favorable in its tone and content. Consider the language used, overall sentiment, and perspective. Provide specific examples and explain your reasoning.", comparisonContent)
-
-	// Call LLM for positivity comparison
-	result, err := articleSvc.CallSynthesisLLM(ctx, prompt)
+	// For a simple 2-article comparison, we reuse the advanced prompt.
+	prompt, err := promptFactory.CreateComparePositivityPrompt(topic, []*models.Article{art1, art2})
 	if err != nil {
-		return "", fmt.Errorf("failed to generate positivity comparison: %w", err)
+		return "", err
 	}
-
-	return result, nil
+	return articleSvc.CallSynthesisLLM(ctx, prompt)
 }

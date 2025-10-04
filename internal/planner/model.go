@@ -5,6 +5,7 @@ import (
 
 	"article-chat-system/internal/article"
 	"article-chat-system/internal/prompts"
+	"article-chat-system/internal/vector"
 )
 
 // QueryIntent represents the user's goal.
@@ -31,5 +32,5 @@ type QueryPlan struct {
 
 // IntentStrategy defines the interface for executing a query based on its intent.
 type IntentStrategy interface {
-	Execute(ctx context.Context, plan *QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory) (string, error)
+	Execute(ctx context.Context, plan *QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory, vectorSvc vector.Service) (string, error)
 }

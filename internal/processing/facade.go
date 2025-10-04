@@ -12,6 +12,7 @@ import (
 	"article-chat-system/internal/llm"
 	"article-chat-system/internal/models"
 	"article-chat-system/internal/prompts"
+	"article-chat-system/internal/repository"
 	"article-chat-system/internal/vector"
 
 	"github.com/go-shiori/go-readability"
@@ -138,15 +139,17 @@ type Facade struct {
 	analyzer   *Analyzer
 	articleSvc article.Service
 	vectorSvc  vector.Service
+	vecRepo    *repository.VectorRepository
 }
 
 // NewFacade initializes the Facade with all its required subsystem components.
-func NewFacade(llmClient llm.Client, articleSvc article.Service, promptFactory *prompts.Factory, vectorSvc vector.Service) *Facade {
+func NewFacade(llmClient llm.Client, articleSvc article.Service, promptFactory *prompts.Factory, vectorSvc vector.Service, vecRepo *repository.VectorRepository) *Facade {
 	return &Facade{
 		fetcher:    NewFetcher(),
 		analyzer:   NewAnalyzer(llmClient, promptFactory),
 		articleSvc: articleSvc,
 		vectorSvc:  vectorSvc,
+		vecRepo:    vecRepo,
 	}
 }
 
@@ -180,7 +183,13 @@ func (f *Facade) AddNewArticle(ctx context.Context, url string) (*models.Article
 		return nil, fmt.Errorf("failed to store article: %w", err)
 	}
 
-	// 4. Index the article in the vector database
+	// 4. Save content to Weaviate for vectorization and search
+	if err := f.vecRepo.SaveArticle(ctx, newArticle); err != nil {
+		log.Printf("WARNING: Failed to save article vector for %s: %v", url, err)
+		// We can choose to not fail the whole operation if vectorization fails.
+	}
+
+	// 5. Index the article in the vector database (fallback)
 	if err := f.vectorSvc.IndexArticle(ctx, newArticle); err != nil {
 		log.Printf("WARNING: Failed to index article in vector database: %v", err)
 		// Don't fail the entire operation if vector indexing fails
