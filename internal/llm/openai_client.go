@@ -88,6 +88,7 @@ func (c *openaiClient) GenerateContent(ctx context.Context, prompt string) (*Res
 		"usage_total_tokens", resp.Usage.TotalTokens,
 		"usage_prompt_tokens", resp.Usage.PromptTokens,
 		"usage_completion_tokens", resp.Usage.CompletionTokens,
+		"usage_struct", resp.Usage, // Log the entire usage struct
 	)
 
 	if resp.Usage.TotalTokens > 0 {
