@@ -109,6 +109,12 @@ func (f *Factory) CreateKeywordsPrompt(articleTitle, articleContent string) (str
 	return f.executeTemplate("keywords", data)
 }
 
+// CreateInitialAnalysisPrompt generates a prompt for comprehensive initial analysis.
+func (f *Factory) CreateInitialAnalysisPrompt(content string) (string, error) {
+	data := struct{ Content string }{Content: content}
+	return f.executeTemplate("initial_analysis", data)
+}
+
 // CreateEntityExtractionPrompt generates a prompt for comprehensive entity extraction.
 func (f *Factory) CreateEntityExtractionPrompt(title, excerpt string) (string, error) {
 	data := struct{ Title, Excerpt string }{Title: title, Excerpt: excerpt}

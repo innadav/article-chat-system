@@ -9,16 +9,17 @@ import (
 	"article-chat-system/internal/planner"
 	"article-chat-system/internal/prompts"
 	"article-chat-system/internal/strategies"
+	"article-chat-system/internal/vector"
 )
 
 // mockStrategy is a mock implementation of the IntentStrategy interface.
 type mockStrategy struct {
-	ExecuteFunc func(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory) (string, error)
+	ExecuteFunc func(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory, vectorSvc vector.Service) (string, error)
 }
 
-func (m *mockStrategy) Execute(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory) (string, error) {
+func (m *mockStrategy) Execute(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory, vectorSvc vector.Service) (string, error) {
 	if m.ExecuteFunc != nil {
-		return m.ExecuteFunc(ctx, plan, articleSvc, promptFactory)
+		return m.ExecuteFunc(ctx, plan, articleSvc, promptFactory, vectorSvc)
 	}
 	return "", errors.New("ExecuteFunc not implemented")
 }
@@ -28,7 +29,7 @@ func TestExecutor_ExecutePlan(t *testing.T) {
 	mockSummarizeStrategy := &mockStrategy{}
 	wasCalled := false
 
-	mockSummarizeStrategy.ExecuteFunc = func(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory) (string, error) {
+	mockSummarizeStrategy.ExecuteFunc = func(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory, vectorSvc vector.Service) (string, error) {
 		wasCalled = true
 		return "Mocked summary response", nil
 	}
@@ -44,7 +45,7 @@ func TestExecutor_ExecutePlan(t *testing.T) {
 	}
 
 	// ACT
-	response, err := executor.ExecutePlan(context.Background(), plan, nil, nil)
+	response, err := executor.ExecutePlan(context.Background(), plan, nil, nil, nil)
 
 	// ASSERT
 	if err != nil {

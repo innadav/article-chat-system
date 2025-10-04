@@ -9,6 +9,7 @@ import (
 	"article-chat-system/internal/article"
 	"article-chat-system/internal/llm"
 	"article-chat-system/internal/models"
+	"article-chat-system/internal/repository"
 )
 
 // mockRepository is a mock implementation of the ArticleRepository interface
@@ -110,7 +111,7 @@ func TestArticleService_GetArticle(t *testing.T) {
 			mockRepo := newMockRepository()
 			tt.setup(mockRepo)
 			mockLLM := newMockLLMClient()
-			service := article.NewService(mockLLM, mockRepo)
+			service := article.NewService(mockLLM, mockRepo, nil)
 
 			article, exists := service.GetArticle(context.Background(), tt.url)
 
@@ -196,7 +197,7 @@ func TestArticleService_CallSynthesisLLM(t *testing.T) {
 			mockRepo := newMockRepository()
 			mockLLM := newMockLLMClient()
 			tt.setup(mockLLM)
-			service := article.NewService(mockLLM, mockRepo)
+			service := article.NewService(mockLLM, mockRepo, nil)
 
 			result, err := service.CallSynthesisLLM(context.Background(), "test prompt")
 

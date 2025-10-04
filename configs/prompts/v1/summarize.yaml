@@ -1,3 +1,1 @@
-template: |
-  Summarize this text concisely while preserving key information:
-  {{.Content}}
+template: "Please provide a concise, one-paragraph summary of the following article:\n\n---\n\n{{.Content}}"

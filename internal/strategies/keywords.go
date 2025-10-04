@@ -8,8 +8,6 @@ import (
 	"article-chat-system/internal/planner"
 	"article-chat-system/internal/prompts"
 	"article-chat-system/internal/vector"
-
-	"github.com/go-shiori/go-readability"
 )
 
 type KeywordsStrategy struct {
@@ -32,13 +30,29 @@ func (s *KeywordsStrategy) extractKeywords(ctx context.Context, plan *planner.Qu
 		return "I couldn't find the requested article.", nil
 	}
 
-	// Fetch content on-demand for keyword extraction
-	articleData, err := readability.FromURL(art.URL, 30)
-	if err != nil {
-		return "", err
+	// Use existing topics and entities from the database instead of fetching content
+	if len(art.Topics) > 0 || len(art.Entities) > 0 {
+		result := "KEYWORDS extracted from the article:\n\n"
+
+		if len(art.Topics) > 0 {
+			result += "Main Topics:\n"
+			for _, topic := range art.Topics {
+				result += "- " + topic + "\n"
+			}
+		}
+
+		if len(art.Entities) > 0 {
+			result += "\nKey Entities:\n"
+			for _, entity := range art.Entities {
+				result += "- " + entity + "\n"
+			}
+		}
+
+		return result, nil
 	}
 
-	prompt, err := promptFactory.CreateKeywordsPrompt(art.Title, articleData.TextContent)
+	// Fallback: if no topics/entities available, try to extract from summary
+	prompt, err := promptFactory.CreateKeywordsPrompt(art.Title, art.Summary)
 	if err != nil {
 		return "", err
 	}

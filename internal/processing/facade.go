@@ -18,6 +18,14 @@ import (
 	"github.com/go-shiori/go-readability"
 )
 
+// Define a struct to match the JSON output from the LLM for initial analysis.
+type initialAnalysisResult struct {
+	Headline  string   `json:"headline"`
+	KeyPoints []string `json:"key_points"`
+	Sentiment string   `json:"sentiment"`
+	Entities  []string `json:"entities"`
+}
+
 type ParsedArticle struct {
 	Title       string
 	TextContent string
@@ -59,47 +67,33 @@ func NewAnalyzer(llmClient llm.Client, promptFactory *prompts.Factory) *Analyzer
 func (a *Analyzer) InitialAnalysis(ctx context.Context, art *models.Article) error {
 	log.Printf("Performing comprehensive analysis for %s", art.Title)
 
-	// Use the new comprehensive entity extraction prompt
-	prompt, err := a.promptFactory.CreateEntityExtractionPrompt(art.Title, art.Excerpt)
+	// Use the new simpler initial analysis prompt for more reliable results
+	prompt, err := a.promptFactory.CreateInitialAnalysisPrompt(art.Excerpt)
 	if err != nil {
-		log.Printf("Failed to create entity extraction prompt for %s: %v", art.Title, err)
+		log.Printf("Failed to create initial analysis prompt for %s: %v", art.Title, err)
 		return a.fallbackAnalysis(ctx, art)
 	}
 
 	resp, err := a.llmClient.GenerateContent(ctx, prompt)
 	if err != nil {
-		log.Printf("Failed to generate comprehensive analysis for %s: %v", art.Title, err)
+		log.Printf("Failed to generate initial analysis for %s: %v", art.Title, err)
 		return a.fallbackAnalysis(ctx, art)
 	}
 
 	// Parse the JSON response
-	var extraction models.EntityExtraction
-	if err := json.Unmarshal([]byte(resp.Text), &extraction); err != nil {
-		log.Printf("Failed to parse entity extraction JSON for %s: %v", art.Title, err)
+	var analysis initialAnalysisResult
+	if err := json.Unmarshal([]byte(resp.Text), &analysis); err != nil {
+		log.Printf("Failed to parse initial analysis JSON for %s: %v", art.Title, err)
 		return a.fallbackAnalysis(ctx, art)
 	}
 
-	// Populate article fields from structured extraction
-	art.Summary = extraction.Summary
-	art.Sentiment = fmt.Sprintf("%.2f (%s)", extraction.Sentiment.Score, extraction.Sentiment.Label)
+	// Populate the main Article object with the richer data
+	art.Summary = analysis.Headline + "\n- " + strings.Join(analysis.KeyPoints, "\n- ")
+	art.Sentiment = analysis.Sentiment
+	art.Topics = analysis.Entities
+	art.Entities = analysis.Entities // Also populate entities field
 
-	// Extract entity names for the entities field
-	var entityNames []string
-	for _, entity := range extraction.Entities {
-		entityNames = append(entityNames, entity.Name)
-	}
-	art.Entities = entityNames
-
-	// Extract topic names for the topics field
-	var topicNames []string
-	for _, topic := range extraction.Topics {
-		topicNames = append(topicNames, topic.Name)
-	}
-	art.Topics = topicNames
-
-	log.Printf("Successfully completed comprehensive analysis for %s: %d entities, %d topics",
-		art.Title, len(entityNames), len(topicNames))
-
+	log.Printf("Successfully analyzed %s: %s", art.Title, analysis.Headline)
 	return nil
 }
 

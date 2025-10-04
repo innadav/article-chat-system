@@ -1,0 +1,12 @@
+template: |
+  You are an expert content analyst. Analyze the following article content and provide a structured summary in JSON format.
+
+  ## Instructions:
+  1. Create a single, compelling "headline" sentence that captures the main point of the article.
+  2. Extract the 3 most important "key_points" from the article as separate strings in an array.
+  3. Provide a one-word "sentiment" (Positive, Negative, or Neutral).
+  4. List the top 5 most important named "entities" (people, companies, etc.) as an array of strings.
+  5. Your response MUST be a single, valid JSON object that matches this structure: {"headline": "", "key_points": [], "sentiment": "", "entities": []}.
+
+  --- ARTICLE CONTENT ---
+  {{.Content}}

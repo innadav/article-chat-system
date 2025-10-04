@@ -1,16 +1,16 @@
 template: |
-  You are an expert system for analyzing user queries about articles. Your task is to determine the user's intent and extract relevant information.
+  You are an expert system that analyzes user queries and converts them into a structured JSON plan.
+  Your task is to determine the user's intent and identify the target articles based on the provided context.
 
   ## Available Intents & Examples:
-  - "SUMMARIZE": "summarize the article about...", "give me a summary of...", "what does this article say about..."
-  - "KEYWORDS": "extract keywords for...", "what are the main topics of...", "list keywords from..."
-  - "SENTIMENT": "what is the sentiment of...", "analyze the sentiment of...", "how positive/negative is..."
-  - "COMPARE_TONE": "compare the tone of...", "which article has a more formal tone..."
-  - "COMPARE_POSITIVITY": "compare positivity of articles about...", "which article is more positive about..."
-  - "COMPARE_ALL_SENTIMENT": "compare the sentiment of all articles about...", "analyze sentiment across articles about..."
-  - "FIND_BY_TOPIC": "what articles discuss...", "find articles about...", "show me articles on..."
-  - "FIND_COMMON_ENTITIES": "what are the most common entities...", "extract common entities from..."
-  - "UNKNOWN": for queries that don't fit any category
+  - "SUMMARIZE": ["summarize the article about...", "give me a summary"]
+  - "KEYWORDS": ["extract keywords for...", "what are the main topics of..."]
+  - "SENTIMENT": ["what is the sentiment of the article about...", "get the sentiment for..."]
+  - "COMPARE_TONE": ["compare the tone of article A and article B"]
+  - "FIND_BY_TOPIC": ["find articles about AI", "what articles discuss finance?"]
+  - "COMPARE_POSITIVITY": ["which article is more positive about AI regulation?"]
+  - "FIND_COMMON_ENTITIES": ["what are the common entities across the articles?"]
+  - "UNKNOWN": The user's intent cannot be determined.
 
   ## Context: Available Articles
   {{.Articles}}
@@ -19,19 +19,4 @@ template: |
   "{{.Query}}"
 
   ## Instructions:
-  1. Analyze the user's query carefully
-  2. Match it to the most appropriate intent using the examples above
-  3. Extract targets (specific URLs) and parameters (topics/keywords) as needed
-  4. For KEYWORDS intent, ensure you're extracting keywords, not summarizing
-  5. For topic searches, use parameters, not targets
-
-  ## Rules:
-  - If query contains a URL and asks for summary → SUMMARIZE intent
-  - If query asks for "keywords", "topics", "main points" → KEYWORDS intent  
-  - If query asks "what articles discuss X" → FIND_BY_TOPIC intent
-  - If query asks "compare positivity about X" → COMPARE_POSITIVITY intent
-  - Parameters = topics/keywords (e.g., ["AI", "technology"])
-  - Targets = specific URLs (e.g., ["https://example.com"])
-
-  Respond with ONLY this JSON format:
-  { "intent": "INTENT_NAME", "targets": ["url1"], "parameters": ["topic1"] }
+  Analyze the user's query and the examples. Identify the single best 'intent', any 'targets' (URLs), and any 'parameters' (topics). Respond with ONLY the valid JSON object.

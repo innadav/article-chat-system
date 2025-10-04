@@ -269,7 +269,7 @@ func TestFactory_CreateSentimentPrompt(t *testing.T) {
 	// Create a temporary directory and test prompt file
 	tempDir := t.TempDir()
 	testPromptFile := filepath.Join(tempDir, "sentiment.yaml")
-	testPromptContent := `template: "Analyze sentiment of '{{.Title}}': {{.Content}}"`
+	testPromptContent := `template: "Analyze the sentiment of this text and return only a number between -1 (very negative) and 1 (very positive):\n{{.Content}}"`
 	err := os.WriteFile(testPromptFile, []byte(testPromptContent), 0644)
 	if err != nil {
 		t.Fatalf("Failed to create test prompt file: %v", err)
@@ -285,13 +285,13 @@ func TestFactory_CreateSentimentPrompt(t *testing.T) {
 		t.Fatalf("Failed to create factory: %v", err)
 	}
 
-	prompt, err := factory.CreateSentimentPrompt("Test Title", "Test content")
+	prompt, err := factory.CreateSentimentPrompt("Test content")
 
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
 
-	expected := "Analyze sentiment of 'Test Title': Test content"
+	expected := "Analyze the sentiment of this text and return only a number between -1 (very negative) and 1 (very positive):\nTest content"
 	if prompt != expected {
 		t.Errorf("Expected prompt '%s', got '%s'", expected, prompt)
 	}
