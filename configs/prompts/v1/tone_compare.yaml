@@ -1,0 +1,3 @@
+template: |
+  Compare tone across these summaries:
+  {{.Content}}

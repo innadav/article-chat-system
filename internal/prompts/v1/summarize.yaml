@@ -1,0 +1,1 @@
+template: "Please provide a concise, one-paragraph summary of the following article:\n\n---\n\n{{.Content}}"

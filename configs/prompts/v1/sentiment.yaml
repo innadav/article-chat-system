@@ -1,0 +1,3 @@
+template: |
+  Analyze the sentiment of this text and return only a number between -1 (very negative) and 1 (very positive):
+  {{.Content}}

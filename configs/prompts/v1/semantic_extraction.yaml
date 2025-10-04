@@ -1,0 +1,19 @@
+template: |
+  Extract entities, keywords, topics, sentiment, and tone from this text. Return JSON in this exact format:
+  {
+    "entities": [{"name": "entity_name", "category": "person|organization|location|technology|other", "confidence": 0.85}],
+    "keywords": [{"term": "keyword", "relevance": 0.8, "context": "brief context"}],
+    "topics": [{"name": "topic_name", "score": 0.75, "description": "brief description"}],
+    "sentiment": "positive|negative|neutral",
+    "sentiment_score": 0.75,
+    "tone": "professional|casual|analytical|critical|optimistic|pessimistic"
+  }
+
+  Rules:
+  - Extract 3-7 entities, 5-10 keywords, 2-5 topics
+  - sentiment_score must be a number between 0.0 and 1.0
+  - Only include items with confidence/relevance/score >= 0.6
+  - Sort by score/confidence/relevance (highest first)
+  - Return valid JSON only
+
+  Text: {{.Content}}

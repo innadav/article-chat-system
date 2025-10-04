@@ -1,0 +1,7 @@
+template: |
+  Extract key topics and keywords from this article. Focus on the main themes, technologies, companies, and concepts mentioned:
+  
+  Title: {{.Title}}
+  Content: {{.Content}}
+  
+  Return a concise list of 5-10 most relevant keywords and topics.

@@ -1,0 +1,3 @@
+template: |
+  Compare these summaries and highlight key differences:
+  {{.Content}}

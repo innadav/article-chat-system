@@ -1,0 +1,22 @@
+template: |
+  Given the user query: '{{.Query}}', and the following available articles:
+
+  {{.Articles}}
+
+  Determine the intent (e.g., SUMMARIZE, SENTIMENT, COMPARE_TONE, FIND_BY_TOPIC, COMPARE_POSITIVITY, FIND_COMMON_ENTITIES, UNKNOWN) and extract targets and parameters.
+
+  RULES:
+  - If the query contains a URL (like https://example.com/article), treat it as a target for summarization
+  - If the query asks to "summarize" or mentions "summary" and contains a URL, use intent "SUMMARIZE" and include the URL in targets
+  - For topic-based searches (like "articles about AI", "economic trends", "technology"), use parameters instead of targets
+  - For comparisons (like "compare positivity about AI"), use parameters for the topic being compared
+  - Parameters should be keywords/topics (e.g., ["AI", "technology", "economic trends"])
+  - Targets should be specific URLs or article identifiers
+
+  Examples:
+  - "Summarize https://example.com/article" → { "intent": "SUMMARIZE", "targets": ["https://example.com/article"], "parameters": [] }
+  - "What articles discuss AI?" → { "intent": "FIND_BY_TOPIC", "targets": [], "parameters": ["AI"] }
+  - "Compare positivity of articles about AI" → { "intent": "COMPARE_POSITIVITY", "targets": [], "parameters": ["AI"] }
+  - "Which article is more positive about AI regulation?" → { "intent": "COMPARE_POSITIVITY", "targets": [], "parameters": ["AI", "regulation"] }
+
+  Respond in JSON format like { "intent": "SUMMARIZE", "targets": ["url1", "url2"], "parameters": ["param1"] }.
