@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 	"article-chat-system/internal/repository"
 	"article-chat-system/internal/strategies"
 	handler "article-chat-system/internal/transport/http"
+	"article-chat-system/internal/vector"
 
 	_ "github.com/lib/pq"
 )
@@ -54,8 +56,21 @@ func main() {
 
 	// 3. Initialize Services
 	articleSvc := article.NewService(llmClient, repo)
+
+	// Initialize vector service (Weaviate)
+	var vectorSvc vector.Service
+	weaviateSvc, err := vector.NewWeaviateService(cfg.WeaviateURL, cfg.WeaviateAPIKey)
+	if err != nil {
+		log.Printf("Warning: Failed to initialize Weaviate service: %v", err)
+		log.Println("Falling back to simple vector service...")
+		vectorSvc = vector.NewSimpleVectorService(articleSvc)
+	} else {
+		log.Println("Successfully initialized Weaviate service")
+		vectorSvc = weaviateSvc
+	}
+
 	plannerSvc := planner.NewService(llmClient, promptFactory, articleSvc)
-	processingFacade := processing.NewFacade(llmClient, articleSvc)
+	processingFacade := processing.NewFacade(llmClient, articleSvc, promptFactory, vectorSvc)
 
 	// 4. Initialize the Transport Layer (The Handler) LAST
 	apiHandler := handler.NewHandler(
@@ -64,6 +79,7 @@ func main() {
 		strategyExecutor,
 		promptFactory,
 		processingFacade,
+		vectorSvc,
 	)
 
 	// 5. Start Background Processes
@@ -72,7 +88,11 @@ func main() {
 		for _, url := range cfg.InitialArticleURLs {
 			_, err := processingFacade.AddNewArticle(context.Background(), url)
 			if err != nil {
-				log.Printf("Failed to process initial URL %s: %v", url, err)
+				if strings.Contains(err.Error(), "already exists") {
+					log.Printf("Article already processed: %s", url)
+				} else {
+					log.Printf("Failed to process initial URL %s: %v", url, err)
+				}
 			}
 		}
 		log.Println("Initial article processing complete.")

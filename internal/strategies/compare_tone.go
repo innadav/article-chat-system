@@ -9,6 +9,7 @@ import (
 	"article-chat-system/internal/article"
 	"article-chat-system/internal/planner"
 	"article-chat-system/internal/prompts"
+	"article-chat-system/internal/vector"
 )
 
 type CompareToneStrategy struct {
@@ -21,7 +22,7 @@ func NewCompareToneStrategy() *CompareToneStrategy {
 	return s
 }
 
-func (s *CompareToneStrategy) compareToneArticles(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory) (string, error) {
+func (s *CompareToneStrategy) compareToneArticles(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory, vectorSvc vector.Service) (string, error) {
 	log.Println("COMPARE TONE STRATEGY: Performing tone comparison logic...")
 
 	if len(plan.Targets) < 2 {

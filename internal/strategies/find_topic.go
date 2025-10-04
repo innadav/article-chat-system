@@ -9,6 +9,7 @@ import (
 	"article-chat-system/internal/article"
 	"article-chat-system/internal/planner"
 	"article-chat-system/internal/prompts"
+	"article-chat-system/internal/vector"
 )
 
 type FindTopicStrategy struct {
@@ -21,7 +22,7 @@ func NewFindTopicStrategy() *FindTopicStrategy {
 	return s
 }
 
-func (s *FindTopicStrategy) findTopicArticles(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory) (string, error) {
+func (s *FindTopicStrategy) findTopicArticles(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory, vectorSvc vector.Service) (string, error) {
 	log.Println("FIND TOPIC STRATEGY: Performing topic search logic...")
 
 	if len(plan.Parameters) == 0 {

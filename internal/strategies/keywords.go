@@ -7,6 +7,7 @@ import (
 	"article-chat-system/internal/article"
 	"article-chat-system/internal/planner"
 	"article-chat-system/internal/prompts"
+	"article-chat-system/internal/vector"
 
 	"github.com/go-shiori/go-readability"
 )
@@ -21,7 +22,7 @@ func NewKeywordsStrategy() *KeywordsStrategy {
 	return s
 }
 
-func (s *KeywordsStrategy) extractKeywords(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory) (string, error) {
+func (s *KeywordsStrategy) extractKeywords(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory, vectorSvc vector.Service) (string, error) {
 	log.Println("KEYWORDS STRATEGY: Performing specific keyword extraction logic...")
 	if len(plan.Targets) == 0 {
 		return "Please specify which article you want to extract keywords from.", nil

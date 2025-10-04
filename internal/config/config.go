@@ -16,6 +16,8 @@ type Config struct {
 	GoogleAPIKey       string
 	OpenAIAPIKey       string
 	PromptVersion      string
+	WeaviateURL        string
+	WeaviateAPIKey     string
 }
 
 // New loads configuration from environment variables.
@@ -26,12 +28,14 @@ func New() *Config {
 	}
 
 	return &Config{
-		DatabaseURL:   GetEnv("DATABASE_URL", "postgres://user:password@localhost:5433/articledb?sslmode=disable"),
-		Port:          GetEnv("PORT", "8080"),
-		LLMProvider:   GetEnv("LLM_PROVIDER", "google"),
-		GoogleAPIKey:  GetEnv("GEMINI_API_KEY", ""),
-		OpenAIAPIKey:  GetEnv("OPENAI_API_KEY", ""),
-		PromptVersion: GetEnv("PROMPT_VERSION", "v1"),
+		DatabaseURL:    GetEnv("DATABASE_URL", "postgres://user:password@localhost:5433/articledb?sslmode=disable"),
+		Port:           GetEnv("PORT", "8080"),
+		LLMProvider:    GetEnv("LLM_PROVIDER", "openai"),
+		GoogleAPIKey:   GetEnv("GEMINI_API_KEY", ""),
+		OpenAIAPIKey:   GetEnv("OPENAI_API_KEY", ""),
+		PromptVersion:  GetEnv("PROMPT_VERSION", "v1"),
+		WeaviateURL:    GetEnv("WEAVIATE_URL", "http://localhost:8080"),
+		WeaviateAPIKey: GetEnv("WEAVIATE_API_KEY", ""),
 		InitialArticleURLs: []string{
 			"https://techcrunch.com/2025/07/26/astronomer-winks-at-viral-notoriety-with-temporary-spokesperson-gwyneth-paltrow/",
 			"https://techcrunch.com/2025/07/26/allianz-life-says-majority-of-customers-personal-data-stolen-in-cyberattack/",

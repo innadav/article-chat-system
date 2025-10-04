@@ -1,0 +1,24 @@
+template: |
+  Extract entities, keywords, topics, sentiment, tone, and generate a summary from this text. Return JSON in this exact format:
+  {
+    "summary": "concise summary of the main points (2-5 sentences maximum)",
+    "entities": [{"name": "entity_name", "category": "person|organization|location|technology|other", "confidence": 0.85}],
+    "keywords": [{"term": "keyword", "relevance": 0.8, "context": "brief context"}],
+    "topics": [{"name": "topic_name", "score": 0.75, "description": "brief description"}],
+    "sentiment": {"score": 0.3, "label": "positive|negative|neutral", "confidence": 0.9},
+    "tone": {"style": "formal|casual|technical|conversational", "mood": "optimistic|pessimistic|neutral", "confidence": 0.8}
+  }
+
+  Text to analyze:
+  Title: {{.Title}}
+  Content: {{.Excerpt}}
+
+  Instructions:
+  - Generate a concise summary (2-5 sentences maximum) capturing the main points
+  - Extract named entities (people, companies, places, technologies)
+  - Identify key terms and concepts with relevance scores
+  - Determine main topics with descriptions
+  - Analyze sentiment (-1 to 1 scale)
+  - Assess writing tone and style
+  - Provide confidence scores (0-1) for all assessments
+  - Return only valid JSON, no additional text

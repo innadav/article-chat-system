@@ -33,6 +33,7 @@ func (s *ArticleService) GetArticle(ctx context.Context, url string) (*models.Ar
 }
 
 // GetAllArticles retrieves all articles from the repository.
+// Deprecated: Use FindTopEntities or other specific repository methods instead for better performance.
 func (s *ArticleService) GetAllArticles(ctx context.Context) []*models.Article {
 	articles, err := s.repo.FindAll(ctx)
 	if err != nil {
@@ -59,55 +60,7 @@ func (s *ArticleService) CallSynthesisLLM(ctx context.Context, prompt string) (s
 }
 
 // FindCommonEntities finds the top 10 most common entities from specified articles or all articles if no URLs provided
-func (s *ArticleService) FindCommonEntities(ctx context.Context, articleURLs []string) ([]EntityCount, error) {
-	var articles []*models.Article
-
-	if len(articleURLs) == 0 {
-		// If no URLs provided, get all articles
-		articles = s.GetAllArticles(ctx)
-	} else {
-		// Get specific articles by URL
-		for _, url := range articleURLs {
-			if article, found := s.GetArticle(ctx, url); found {
-				articles = append(articles, article)
-			}
-		}
-	}
-
-	if len(articles) == 0 {
-		return []EntityCount{}, nil
-	}
-
-	// Count entities (topics) from articles
-	entityCounts := make(map[string]int)
-	for _, article := range articles {
-		for _, topic := range article.Topics {
-			if topic != "" {
-				entityCounts[topic]++
-			}
-		}
-	}
-
-	// Convert to slice and sort by count
-	result := make([]EntityCount, 0, len(entityCounts))
-	for entity, count := range entityCounts {
-		result = append(result, EntityCount{Entity: entity, Count: count})
-	}
-
-	// Sort by count (descending)
-	for i := 0; i < len(result); i++ {
-		for j := i + 1; j < len(result); j++ {
-			if result[i].Count < result[j].Count {
-				result[i], result[j] = result[j], result[i]
-			}
-		}
-	}
-
-	// Return top 10
-	topCount := 10
-	if len(result) < topCount {
-		topCount = len(result)
-	}
-
-	return result[:topCount], nil
+func (s *ArticleService) FindCommonEntities(ctx context.Context, articleURLs []string) ([]repository.EntityCount, error) {
+	// Use efficient PostgreSQL query instead of loading all articles into memory
+	return s.repo.FindTopEntities(ctx, articleURLs, 10)
 }

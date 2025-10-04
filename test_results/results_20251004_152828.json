@@ -1,0 +1,145 @@
+{
+  "timestamp": "2025-10-04T12:28:49Z",
+  "test_summary": {
+    "total_tests": 10,
+    "passed_tests": 10,
+    "failed_tests": 0,
+    "success_rate": 100,
+    "total_time": 21
+  },
+  "api_info": {
+    "base_url": "http://localhost:8080",
+    "endpoints_tested": ["/chat", "/articles"]
+  },
+  "tests": [
+{
+  "name": "Article Summarization",
+  "query": "Summarize the article https://techcrunch.com/2025/07/25/sam-altman-warns-theres-no-legal-confidentiality-when-using-chatgpt-as-a-therapist/",
+  "expected_intent": "SUMMARIZE",
+  "status": "PASSED",
+  "duration": 1.0,
+  "should_contain": "summary",
+  "content_check": "FAILED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\nSam Altman highlights the lack of legal confidentiality for users when using ChatGPT as a therapist due to the absence of a legal or policy framework for AI."
+  }
+}
+,
+{
+  "name": "Keywords Extraction",
+  "query": "Extract keywords from the article https://techcrunch.com/2025/07/25/sam-altman-warns-theres-no-legal-confidentiality-when-using-chatgpt-as-a-therapist/",
+  "expected_intent": "KEYWORDS",
+  "status": "PASSED",
+  "duration": 1.0,
+  "should_contain": "keywords",
+  "content_check": "FAILED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\nSam Altman highlights the lack of legal confidentiality for users when using ChatGPT as a therapist due to the absence of a legal or policy framework for AI."
+  }
+}
+,
+{
+  "name": "Sentiment Analysis",
+  "query": "What is the sentiment of the article https://techcrunch.com/2025/07/27/wizard-of-oz-blown-up-by-ai-for-giant-sphere-screen/?",
+  "expected_intent": "SENTIMENT",
+  "status": "PASSED",
+  "duration": 1.0,
+  "should_contain": "sentiment",
+  "content_check": "PASSED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\nSentiment Analysis Results:\n\nArticle 1: '‘The Wizard of Oz’ blown up by AI for giant Sphere screen' - Sentiment: 0.20 (neutral) (0.20)"
+  }
+}
+,
+{
+  "name": "Topic Search",
+  "query": "What articles discuss AI regulation?",
+  "expected_intent": "FIND_BY_TOPIC",
+  "status": "PASSED",
+  "duration": 1.0,
+  "should_contain": "articles",
+  "content_check": "PASSED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\nNo articles found discussing 'AI regulation'."
+  }
+}
+,
+{
+  "name": "Entity Extraction",
+  "query": "What are the most commonly discussed entities across all articles?",
+  "expected_intent": "FIND_COMMON_ENTITIES",
+  "status": "PASSED",
+  "duration": 1.0,
+  "should_contain": "entities",
+  "content_check": "PASSED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\nFound 10 entities:\n- United States: 3 occurrences\n- Donald Trump: 2 occurrences\n- European Union: 2 occurrences\n- Intel: 2 occurrences\n- Meta: 2 occurrences\n- Allianz: 1 occurrences\n- Allianz Life: 1 occurrences\n- Astronomer: 1 occurrences\n- Boston: 1 occurrences\n- CBS Sunday Morning: 1 occurrences\n"
+  }
+}
+,
+{
+  "name": "Tone Comparison",
+  "query": "What are the key differences in tone between https://techcrunch.com/2025/07/25/sam-altman-warns-theres-no-legal-confidentiality-when-using-chatgpt-as-a-therapist/ and https://techcrunch.com/2025/07/25/meta-names-shengjia-zhao-as-chief-scientist-of-ai-superintelligence-unit/?",
+  "expected_intent": "COMPARE_TONE",
+  "status": "PASSED",
+  "duration": 3.0,
+  "should_contain": "tone",
+  "content_check": "PASSED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\nThe tone and writing style of the two articles differ significantly. \n\nArticle 1 has a more critical and cautionary tone, highlighting the potential risks and lack of legal protections for users when using ChatGPT as a therapist. The writing is formal and technical, focusing on the absence of a legal or policy framework for AI. The perspective in this article is more focused on the potential negative implications of using AI in therapy.\n\nOn the other hand, Article 2 has a more neutral and informative tone, simply stating the appointment of Shengjia Zhao as the chief scientist of Meta's AI superintelligence unit. The writing is less technical and more straightforward, providing a brief summary of the appointment without delving into potential implications or risks. The perspective in this article is more focused on the announcement of a new appointment within Meta's AI division.\n\nIn terms of specific examples, Article 1 uses phrases such as \"lack of legal confidentiality\" and \"absence of a legal or policy framework for AI,\" which highlight the potential risks and lack of protections for users. On the other hand, Article 2 simply states the fact of Shengjia Zhao's appointment without delving into any potential risks or implications. \n\nOverall, Article 1 takes a more critical and cautionary approach, while Article 2 takes a more neutral and informational approach."
+  }
+}
+,
+{
+  "name": "Positivity Comparison",
+  "query": "Which article is more positive about AI: https://techcrunch.com/2025/07/25/sam-altman-warns-theres-no-legal-confidentiality-when-using-chatgpt-as-a-therapist/ or https://techcrunch.com/2025/07/25/meta-names-shengjia-zhao-as-chief-scientist-of-ai-superintelligence-unit/?",
+  "expected_intent": "COMPARE_POSITIVITY",
+  "status": "PASSED",
+  "duration": 2.0,
+  "should_contain": "positive",
+  "content_check": "PASSED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\nIn terms of positivity and sentiment, Article 1 appears to be more optimistic and favorable compared to Article 2. \n\nArticle 1 focuses on the appointment of Shengjia Zhao as the chief scientist of Meta's AI superintelligence unit, highlighting his background as a former OpenAI researcher. The language used in Article 1 is positive, emphasizing Zhao's expertise in the field of artificial intelligence and his potential contributions to Meta's AI superintelligence unit. The tone of the article suggests excitement and potential advancements in the field of AI.\n\nOn the other hand, Article 2 discusses the potential risks and lack of legal confidentiality for users when using ChatGPT as a therapist. The language used in Article 2 is more cautionary and critical, pointing out the absence of a legal or policy framework for AI. The tone of the article is more concerned and raises potential ethical issues surrounding the use of AI in therapeutic settings.\n\nOverall, Article 1 is more positive, optimistic, and favorable in its tone and content compared to Article 2. It focuses on the advancements and potential benefits of AI technology, while Article 2 raises concerns and highlights potential risks and ethical considerations."
+  }
+}
+,
+{
+  "name": "Economic Trends Search",
+  "query": "What articles discuss economic trends?",
+  "expected_intent": "FIND_BY_TOPIC",
+  "status": "PASSED",
+  "duration": 1.0,
+  "should_contain": "economic",
+  "content_check": "PASSED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\nNo articles found discussing 'economic trends'."
+  }
+}
+,
+{
+  "name": "General Article Search",
+  "query": "Find articles about technology companies",
+  "expected_intent": "FIND_BY_TOPIC",
+  "status": "PASSED",
+  "duration": 1.0,
+  "should_contain": "technology",
+  "content_check": "PASSED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\nNo articles found discussing 'technology companies'."
+  }
+}
+,
+{
+  "name": "Multiple Article Analysis",
+  "query": "Compare the sentiment of all articles about AI",
+  "expected_intent": "SENTIMENT",
+  "status": "PASSED",
+  "duration": 0,
+  "should_contain": "sentiment",
+  "content_check": "PASSED",
+  "response": {
+    "answer": "🤖 Here is your answer:\n\nPlease specify which article you want to analyze sentiment for."
+  }
+}
+  ]
+}

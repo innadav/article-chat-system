@@ -9,6 +9,7 @@ import (
 	"article-chat-system/internal/models"
 	"article-chat-system/internal/planner"
 	"article-chat-system/internal/prompts"
+	"article-chat-system/internal/vector"
 
 	"github.com/go-shiori/go-readability"
 )
@@ -23,7 +24,7 @@ func NewSummarizeStrategy() *SummarizeStrategy {
 	return s
 }
 
-func (s *SummarizeStrategy) summarizeArticle(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory) (string, error) {
+func (s *SummarizeStrategy) summarizeArticle(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory, vectorSvc vector.Service) (string, error) {
 	log.Println("SUMMARIZE STRATEGY: Performing specific summarization logic...")
 	if len(plan.Targets) == 0 {
 		return "Please specify which article you want to summarize.", nil

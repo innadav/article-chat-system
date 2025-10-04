@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"sort"
-	"strings"
 
 	"article-chat-system/internal/article"
 	"article-chat-system/internal/planner"
 	"article-chat-system/internal/prompts"
+	"article-chat-system/internal/repository"
+	"article-chat-system/internal/vector"
 )
 
 type FindCommonEntitiesStrategy struct {
@@ -22,72 +22,32 @@ func NewFindCommonEntitiesStrategy() *FindCommonEntitiesStrategy {
 	return s
 }
 
-func (s *FindCommonEntitiesStrategy) findCommonEntities(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory) (string, error) {
+func (s *FindCommonEntitiesStrategy) findCommonEntities(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory, vectorSvc vector.Service) (string, error) {
 	log.Println("FIND COMMON ENTITIES STRATEGY: Performing entity extraction logic...")
 
-	// Get all articles from database
-	allArticles := articleSvc.GetAllArticles(ctx)
-	if len(allArticles) == 0 {
-		return "No articles found in the database.", nil
+	// Get common entities from database using efficient PostgreSQL query
+	// If no targets specified, get entities from all articles
+	var entityCounts []repository.EntityCount
+	var err error
+
+	if len(plan.Targets) == 0 {
+		entityCounts, err = articleSvc.FindCommonEntities(ctx, []string{})
+	} else {
+		entityCounts, err = articleSvc.FindCommonEntities(ctx, plan.Targets)
 	}
 
-	// Collect all topics from all articles
-	entityCounts := make(map[string]int)
-	var allSummaries []string
-
-	for i, art := range allArticles {
-		// Count topics as entities
-		for _, topic := range art.Topics {
-			if topic != "" {
-				entityCounts[topic]++
-			}
-		}
-
-		// Also collect summaries for LLM analysis
-		if art.Summary != "" {
-			allSummaries = append(allSummaries, fmt.Sprintf("Article %d: %s\nSummary: %s", i+1, art.Title, art.Summary))
-		}
+	if err != nil {
+		return "", fmt.Errorf("failed to find common entities: %w", err)
 	}
 
-	// Sort entities by frequency
-	type entityCount struct {
-		entity string
-		count  int
+	if len(entityCounts) == 0 {
+		return "No entities found in the database.", nil
 	}
 
-	var sortedEntities []entityCount
-	for entity, count := range entityCounts {
-		sortedEntities = append(sortedEntities, entityCount{entity, count})
-	}
-
-	sort.Slice(sortedEntities, func(i, j int) bool {
-		return sortedEntities[i].count > sortedEntities[j].count
-	})
-
-	// Create response
-	result := fmt.Sprintf("Most commonly discussed entities across %d articles:\n\n", len(allArticles))
-
-	// Show top 10 entities
-	topCount := 10
-	if len(sortedEntities) < topCount {
-		topCount = len(sortedEntities)
-	}
-
-	for i := 0; i < topCount; i++ {
-		result += fmt.Sprintf("%d. %s (mentioned in %d articles)\n", i+1, sortedEntities[i].entity, sortedEntities[i].count)
-	}
-
-	// If we have summaries, use LLM to extract additional entities
-	if len(allSummaries) > 0 {
-		summariesText := strings.Join(allSummaries, "\n\n")
-		prompt := fmt.Sprintf("Analyze these article summaries and identify the most commonly discussed entities (people, companies, technologies, concepts, etc.):\n\n%s\n\nProvide a list of the top 10 most frequently mentioned entities with brief descriptions.", summariesText)
-
-		llmResult, err := articleSvc.CallSynthesisLLM(ctx, prompt)
-		if err != nil {
-			log.Printf("Failed to get LLM entity analysis: %v", err)
-		} else {
-			result += "\n\nLLM Analysis:\n" + llmResult
-		}
+	// Return the raw entity counts as JSON-like string
+	result := fmt.Sprintf("Found %d entities:\n", len(entityCounts))
+	for _, entity := range entityCounts {
+		result += fmt.Sprintf("- %s: %d occurrences\n", entity.Entity, entity.Count)
 	}
 
 	return result, nil

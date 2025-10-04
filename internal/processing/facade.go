@@ -2,6 +2,7 @@ package processing
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -10,6 +11,8 @@ import (
 	"article-chat-system/internal/article"
 	"article-chat-system/internal/llm"
 	"article-chat-system/internal/models"
+	"article-chat-system/internal/prompts"
+	"article-chat-system/internal/vector"
 
 	"github.com/go-shiori/go-readability"
 )
@@ -41,50 +44,77 @@ func (f *Fetcher) FetchAndParse(ctx context.Context, url string) (*ParsedArticle
 }
 
 type Analyzer struct {
-	llmClient llm.Client
+	llmClient     llm.Client
+	promptFactory *prompts.Factory
 }
 
-func NewAnalyzer(llmClient llm.Client) *Analyzer {
-	return &Analyzer{llmClient: llmClient}
+func NewAnalyzer(llmClient llm.Client, promptFactory *prompts.Factory) *Analyzer {
+	return &Analyzer{
+		llmClient:     llmClient,
+		promptFactory: promptFactory,
+	}
 }
 
 func (a *Analyzer) InitialAnalysis(ctx context.Context, art *models.Article) error {
-	log.Printf("Performing initial analysis for %s", art.Title)
+	log.Printf("Performing comprehensive analysis for %s", art.Title)
 
-	// Generate summary
-	summaryPrompt := fmt.Sprintf("Please provide a concise summary of this article titled '%s':\n\n%s", art.Title, art.Excerpt)
-	summaryResp, err := a.llmClient.GenerateContent(ctx, summaryPrompt)
+	// Use the new comprehensive entity extraction prompt
+	prompt, err := a.promptFactory.CreateEntityExtractionPrompt(art.Title, art.Excerpt)
 	if err != nil {
-		log.Printf("Failed to generate summary for %s: %v", art.Title, err)
-		art.Summary = fmt.Sprintf("Summary for %s: %s", art.Title, art.Excerpt)
-	} else {
-		art.Summary = summaryResp.Text
-		log.Printf("Successfully generated summary for %s", art.Title)
+		log.Printf("Failed to create entity extraction prompt for %s: %v", art.Title, err)
+		return a.fallbackAnalysis(ctx, art)
 	}
 
-	// Extract topics/keywords
-	topicsPrompt := fmt.Sprintf("Extract key topics and keywords from this article. Focus on the main themes, technologies, companies, and concepts mentioned:\n\nTitle: %s\nContent: %s\n\nReturn a concise list of 5-10 most relevant keywords and topics, separated by commas.", art.Title, art.Excerpt)
-	topicsResp, err := a.llmClient.GenerateContent(ctx, topicsPrompt)
+	resp, err := a.llmClient.GenerateContent(ctx, prompt)
 	if err != nil {
-		log.Printf("Failed to extract topics for %s: %v", art.Title, err)
-		art.Topics = []string{}
-	} else {
-		// Parse topics from response (comma-separated)
-		topics := parseTopicsFromResponse(topicsResp.Text)
-		art.Topics = topics
-		log.Printf("Successfully extracted %d topics for %s", len(topics), art.Title)
+		log.Printf("Failed to generate comprehensive analysis for %s: %v", art.Title, err)
+		return a.fallbackAnalysis(ctx, art)
 	}
 
-	// Analyze sentiment
-	sentimentPrompt := fmt.Sprintf("Analyze the sentiment of this text and return only a number between -1 (very negative) and 1 (very positive):\n%s", art.Excerpt)
-	sentimentResp, err := a.llmClient.GenerateContent(ctx, sentimentPrompt)
-	if err != nil {
-		log.Printf("Failed to analyze sentiment for %s: %v", art.Title, err)
-		art.Sentiment = "neutral"
-	} else {
-		art.Sentiment = sentimentResp.Text
-		log.Printf("Successfully analyzed sentiment for %s: %s", art.Title, art.Sentiment)
+	// Parse the JSON response
+	var extraction models.EntityExtraction
+	if err := json.Unmarshal([]byte(resp.Text), &extraction); err != nil {
+		log.Printf("Failed to parse entity extraction JSON for %s: %v", art.Title, err)
+		return a.fallbackAnalysis(ctx, art)
 	}
+
+	// Populate article fields from structured extraction
+	art.Summary = extraction.Summary
+	art.Sentiment = fmt.Sprintf("%.2f (%s)", extraction.Sentiment.Score, extraction.Sentiment.Label)
+
+	// Extract entity names for the entities field
+	var entityNames []string
+	for _, entity := range extraction.Entities {
+		entityNames = append(entityNames, entity.Name)
+	}
+	art.Entities = entityNames
+
+	// Extract topic names for the topics field
+	var topicNames []string
+	for _, topic := range extraction.Topics {
+		topicNames = append(topicNames, topic.Name)
+	}
+	art.Topics = topicNames
+
+	log.Printf("Successfully completed comprehensive analysis for %s: %d entities, %d topics",
+		art.Title, len(entityNames), len(topicNames))
+
+	return nil
+}
+
+// fallbackAnalysis provides a simple fallback if the comprehensive analysis fails
+func (a *Analyzer) fallbackAnalysis(ctx context.Context, art *models.Article) error {
+	log.Printf("Using fallback analysis for %s", art.Title)
+
+	// Simple summary
+	art.Summary = fmt.Sprintf("Summary for %s: %s", art.Title, art.Excerpt)
+
+	// Simple sentiment
+	art.Sentiment = "neutral"
+
+	// Empty arrays
+	art.Entities = []string{}
+	art.Topics = []string{}
 
 	return nil
 }
@@ -107,14 +137,16 @@ type Facade struct {
 	fetcher    *Fetcher
 	analyzer   *Analyzer
 	articleSvc article.Service
+	vectorSvc  vector.Service
 }
 
 // NewFacade initializes the Facade with all its required subsystem components.
-func NewFacade(llmClient llm.Client, articleSvc article.Service) *Facade {
+func NewFacade(llmClient llm.Client, articleSvc article.Service, promptFactory *prompts.Factory, vectorSvc vector.Service) *Facade {
 	return &Facade{
 		fetcher:    NewFetcher(),
-		analyzer:   NewAnalyzer(llmClient),
+		analyzer:   NewAnalyzer(llmClient, promptFactory),
 		articleSvc: articleSvc,
+		vectorSvc:  vectorSvc,
 	}
 }
 
@@ -146,6 +178,12 @@ func (f *Facade) AddNewArticle(ctx context.Context, url string) (*models.Article
 	// 3. Coordinate the Article Service to store the final result
 	if err := f.articleSvc.StoreArticle(ctx, newArticle); err != nil {
 		return nil, fmt.Errorf("failed to store article: %w", err)
+	}
+
+	// 4. Index the article in the vector database
+	if err := f.vectorSvc.IndexArticle(ctx, newArticle); err != nil {
+		log.Printf("WARNING: Failed to index article in vector database: %v", err)
+		// Don't fail the entire operation if vector indexing fails
 	}
 
 	log.Printf("FACADE: Successfully processed and stored new article: %s", newArticle.Title)

@@ -5,5 +5,6 @@ CREATE TABLE articles (
     summary TEXT,
     sentiment TEXT,
     topics TEXT[],
+    entities TEXT[],
     processed_at TIMESTAMPTZ NOT NULL
 );

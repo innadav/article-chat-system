@@ -10,7 +10,9 @@ import (
 	"article-chat-system/internal/planner"
 	"article-chat-system/internal/processing"
 	"article-chat-system/internal/prompts"
+	"article-chat-system/internal/repository"
 	"article-chat-system/internal/strategies"
+	"article-chat-system/internal/vector"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -23,6 +25,7 @@ type Handler struct {
 	strategyExecutor *strategies.Executor // Executor can be concrete if it has no interface, or use its interface
 	promptFactory    *prompts.Factory     // Factory can be concrete
 	processingFacade *processing.Facade   // Facade can be concrete
+	vectorSvc        vector.Service       // Vector service for semantic search
 }
 
 // NewHandler now accepts the interfaces as arguments.
@@ -32,6 +35,7 @@ func NewHandler(
 	strategyExecutor *strategies.Executor,
 	promptFactory *prompts.Factory,
 	processingFacade *processing.Facade,
+	vectorSvc vector.Service,
 ) *Handler {
 	return &Handler{
 		articleSvc:       articleSvc,
@@ -39,6 +43,7 @@ func NewHandler(
 		strategyExecutor: strategyExecutor,
 		promptFactory:    promptFactory,
 		processingFacade: processingFacade,
+		vectorSvc:        vectorSvc,
 	}
 }
 
@@ -69,8 +74,8 @@ type FindEntitiesRequest struct {
 }
 
 type FindEntitiesResponse struct {
-	Entities []article.EntityCount `json:"entities"`
-	Count    int                   `json:"count"`
+	Entities []repository.EntityCount `json:"entities"`
+	Count    int                      `json:"count"`
 }
 
 func (h *Handler) handleChat(w http.ResponseWriter, r *http.Request) {
@@ -95,7 +100,7 @@ func (h *Handler) handleChat(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to create a query plan: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	answer, err := h.strategyExecutor.ExecutePlan(r.Context(), plan, h.articleSvc, h.promptFactory)
+	answer, err := h.strategyExecutor.ExecutePlan(r.Context(), plan, h.articleSvc, h.promptFactory, h.vectorSvc)
 	if err != nil {
 		http.Error(w, "Failed to execute the plan: "+err.Error(), http.StatusInternalServerError)
 		return

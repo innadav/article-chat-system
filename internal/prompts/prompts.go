@@ -109,8 +109,8 @@ func (f *Factory) CreateKeywordsPrompt(articleTitle, articleContent string) (str
 	return f.executeTemplate("keywords", data)
 }
 
-// CreateSentimentPrompt generates a prompt for sentiment analysis.
-func (f *Factory) CreateSentimentPrompt(articleTitle, articleContent string) (string, error) {
-	data := struct{ Title, Content string }{Title: articleTitle, Content: articleContent}
-	return f.executeTemplate("sentiment", data)
+// CreateEntityExtractionPrompt generates a prompt for comprehensive entity extraction.
+func (f *Factory) CreateEntityExtractionPrompt(title, excerpt string) (string, error) {
+	data := struct{ Title, Excerpt string }{Title: title, Excerpt: excerpt}
+	return f.executeTemplate("entity_extraction", data)
 }

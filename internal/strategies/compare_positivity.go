@@ -23,13 +23,10 @@ func NewComparePositivityStrategy() *ComparePositivityStrategy {
 	return s
 }
 
-func (s *ComparePositivityStrategy) comparePositivityArticles(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory) (string, error) {
+func (s *ComparePositivityStrategy) comparePositivityArticles(ctx context.Context, plan *planner.QueryPlan, articleSvc article.Service, promptFactory *prompts.Factory, vectorSvc vector.Service) (string, error) {
 	log.Println("COMPARE POSITIVITY STRATEGY: Performing positivity comparison logic...")
 	log.Printf("COMPARE POSITIVITY: Plan targets: %v", plan.Targets)
 	log.Printf("COMPARE POSITIVITY: Plan parameters: %v", plan.Parameters)
-
-	// Create vector service
-	vectorSvc := vector.NewSimpleVectorService(articleSvc)
 
 	var articles []*models.Article
 	var err error
