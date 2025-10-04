@@ -60,18 +60,29 @@ graph TD
 
 ### 1\. Configure Environment
 
-Create a `.env` file in the root of the project. This file will hold your secret API key and provider choice.
+Create a `.env` file in the root of the project with the following structure:
 
-```
+```bash
 # .env file
 
-# Set your provider ("openai" or "google")
-LLM_PROVIDER="openai"
+# Server Configuration
+PORT=8080
 
-# Add the corresponding API key
-OPENAI_API_KEY="sk-..."
-GEMINI_API_KEY="AIza..."
+# OpenAI Configuration
+OPENAI_MODEL=gpt-4-turbo
+OPENAI_API_KEY=sk-proj-your_openai_api_key_here
+
+# Database Configuration
+DATABASE_URL=postgres://user:password@postgres:5432/articledb?sslmode=disable
 ```
+
+**Required Environment Variables:**
+- `OPENAI_API_KEY`: Your OpenAI API key (required)
+- `PORT`: Server port (default: 8080)
+- `OPENAI_MODEL`: OpenAI model to use (default: gpt-4-turbo)
+- `DATABASE_URL`: PostgreSQL connection string for the database
+
+**Note:** The DATABASE_URL uses `postgres:5432` for container-to-container communication within Docker.
 
 ### 2\. Run the Application
 
