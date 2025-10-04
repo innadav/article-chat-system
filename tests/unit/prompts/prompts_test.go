@@ -148,33 +148,24 @@ func TestNewFactory(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		model       string
 		loader      *prompts.Loader
 		expectError bool
 	}{
 		{
 			name:        "valid factory",
-			model:       "gemini-1.5-flash",
 			loader:      loader,
 			expectError: false,
 		},
 		{
 			name:        "nil loader",
-			model:       "gemini-1.5-flash",
 			loader:      nil,
 			expectError: false, // Factory doesn't validate loader
-		},
-		{
-			name:        "empty model",
-			model:       "",
-			loader:      loader,
-			expectError: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			factory, err := prompts.NewFactory(tt.model, tt.loader)
+			factory, err := prompts.NewFactory(tt.loader)
 
 			if tt.expectError {
 				if err == nil {
@@ -189,9 +180,6 @@ func TestNewFactory(t *testing.T) {
 				}
 				if factory == nil {
 					t.Error("Expected factory to be non-nil")
-				}
-				if factory.Model != tt.model {
-					t.Errorf("Expected model %s, got %s", tt.model, factory.Model)
 				}
 				if factory.Loader != tt.loader {
 					t.Error("Expected loader to match")
@@ -216,7 +204,7 @@ func TestFactory_CreateSummarizePrompt(t *testing.T) {
 		Cache:     make(map[string]*template.Template),
 	}
 
-	factory, err := prompts.NewFactory("test-model", loader)
+	factory, err := prompts.NewFactory(loader)
 	if err != nil {
 		t.Fatalf("Failed to create factory: %v", err)
 	}
@@ -248,7 +236,7 @@ func TestFactory_CreateKeywordsPrompt(t *testing.T) {
 		Cache:     make(map[string]*template.Template),
 	}
 
-	factory, err := prompts.NewFactory("test-model", loader)
+	factory, err := prompts.NewFactory(loader)
 	if err != nil {
 		t.Fatalf("Failed to create factory: %v", err)
 	}
@@ -280,7 +268,7 @@ func TestFactory_CreatePlannerPrompt(t *testing.T) {
 		Cache:     make(map[string]*template.Template),
 	}
 
-	factory, err := prompts.NewFactory("test-model", loader)
+	factory, err := prompts.NewFactory(loader)
 	if err != nil {
 		t.Fatalf("Failed to create factory: %v", err)
 	}

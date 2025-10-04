@@ -82,7 +82,7 @@ func main() {
 		logger.Error("Failed to load prompts", "error", err, "version", cfg.PromptVersion)
 		log.Fatalf("Failed to load prompts: %v", err)
 	}
-	promptFactory, err := prompts.NewFactory(prompts.ModelGemini15Flash, promptLoader)
+	promptFactory, err := prompts.NewFactory(promptLoader)
 	if err != nil {
 		logger.Error("Failed to create prompt factory", "error", err)
 		log.Fatalf("Failed to create prompt factory: %v", err)

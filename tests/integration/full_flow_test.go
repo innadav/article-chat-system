@@ -115,7 +115,7 @@ func TestFacade_AddNewArticle_WithDatabase(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create prompt loader: %v", err)
 	}
-	promptFactory, err := prompts.NewFactory("test-model", promptLoader)
+	promptFactory, err := prompts.NewFactory(promptLoader)
 	if err != nil {
 		t.Fatalf("Failed to create prompt factory: %v", err)
 	}

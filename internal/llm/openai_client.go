@@ -56,7 +56,8 @@ func (c *openaiClient) GenerateContent(ctx context.Context, prompt string) (*Res
 	resp, err := c.client.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
-			Model: c.model,
+			Model:       c.model,
+			Temperature: 0.0, // Set temperature to 0 for deterministic output
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleUser,

@@ -12,10 +12,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const ( // Define LLM models here
-	ModelGemini15Flash = "gemini-1.5-flash"
-)
-
 type PromptTemplate struct {
 	Template string `yaml:"template"`
 }
@@ -59,13 +55,12 @@ func (l *Loader) LoadPrompt(name string) (*template.Template, error) {
 }
 
 type Factory struct {
-	Model  string
 	Loader *Loader
 }
 
-func NewFactory(model string, loader *Loader) (*Factory, error) { // Return error from constructor
+func NewFactory(loader *Loader) (*Factory, error) { // Return error from constructor
 	// It's good practice to pre-load/parse templates here if possible
-	return &Factory{Model: model, Loader: loader}, nil
+	return &Factory{Loader: loader}, nil
 }
 
 func (f *Factory) executeTemplate(name string, data interface{}) (string, error) {

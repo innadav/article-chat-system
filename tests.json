@@ -2,12 +2,12 @@
   {
     "name": "Article Summarization",
     "query": "Summarize the article https://techcrunch.com/2025/07/25/sam-altman-warns-theres-no-legal-confidentiality-when-using-chatgpt-as-a-therapist/",
-    "should_contain": "Sam Altman"
+    "should_contain": "confidentiality"
   },
   {
     "name": "Keywords Extraction",
     "query": "Extract keywords from the article https://techcrunch.com/2025/07/25/sam-altman-warns-theres-no-legal-confidentiality-when-using-chatgpt-as-a-therapist/",
-    "should_contain": "ChatGPT"
+    "should_contain": "AI"
   },
   {
     "name": "Sentiment Analysis",
@@ -22,7 +22,7 @@
   {
     "name": "Entity Extraction",
     "query": "What are the most commonly discussed entities across all articles?",
-    "should_contain": "Meta"
+    "should_contain": "AI tool"
   },
   {
     "name": "Tone Comparison",

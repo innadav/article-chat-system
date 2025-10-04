@@ -1,1 +1,4 @@
-template: "Extract the 10 most important keywords and named entities from the article titled '{{.Title}}'. Return them as a single, comma-separated list."
+template: |
+  You are an expert analyst. Analyze the article titled '{{.Title}}'.
+  Extract the top 7-10 most important keywords AND named entities (people, companies, etc.).
+  Return them as a single, comma-separated list.

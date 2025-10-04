@@ -5,28 +5,7 @@
 
 An intelligent, chat-based service built in Go that allows users to interact with a persistent collection of articles. The system leverages Large Language Models (LLMs) and a vector database to provide summarization, sentiment analysis, and complex, context-aware query responses.
 
-## ✨ Features
-
-  * **Natural Language Chat Interface**: Ask questions in plain English via a simple REST API.
-  * **Dynamic Article Ingestion**: Add new articles to the system at any time by providing a URL.
-  * **Advanced Query Capabilities**:
-      * Summarization, keyword/entity extraction, and sentiment analysis.
-      * Comparative analysis (tone, positivity) between multiple articles.
-      * Semantic topic search that understands the *meaning* of your query.
-  * **Persistent Storage**: Article metadata is stored in PostgreSQL, and semantic vectors are stored in Weaviate.
-  * **Observability**: Full support for structured logging (`slog`) and distributed tracing (`OpenTelemetry` + `Jaeger`) for LangSmith-like visibility.
-  * **API-Level Caching**: In-memory cache for instant responses to repeated queries.
-
-## 🛠️ Technology Stack
-
-  * **Language**: Go
-  * **API Framework**: Chi
-  * **Databases**: PostgreSQL (metadata), Weaviate (vector search)
-  * **AI / LLM**: Google Gemini / OpenAI (configurable)
-  * **Observability**: OpenTelemetry, Jaeger
-  * **Containerization**: Docker, Docker Compose
-
-## 🏗️ Architecture Overview
+## Architecture & System Flow
 
 The system is built on a clean, decoupled architecture using several key design patterns to separate concerns.
 
@@ -55,19 +34,29 @@ graph TD
     F --> G; F --> H;
 ```
 
-## 🧠 Key Design Decisions
+## Key Design Decisions
 
   - **Hexagonal Architecture**: Core application logic is isolated from external concerns. The `llm.Client` and `repository.ArticleRepository` interfaces allow swapping external services without changing business logic.
-  - **Facade Pattern**: Used in `internal/processing/facade.go` to provide a simple, single-method interface for the complex process of ingesting a new article.
-  - **Strategy & Template Method Patterns**: Used in `internal/strategies/` to manage each chat query type as an interchangeable algorithm, making the system highly extensible.
-  - **Factory Patterns**: The `llm.Factory` selects different LLM clients, and the `prompts.Factory` centralizes all prompt engineering by loading versioned templates from external YAML files.
+
+  - **Facade Pattern**: Used in `internal/processing/facade.go` to provide a simple, single-method interface (`AddNewArticle`) for the complex process of ingesting a new article.
+
+  - **Strategy & Template Method Patterns**: Used in `internal/strategies/` to manage each chat query type as an interchangeable algorithm, making the system highly extensible. A `BaseStrategy` provides a shared workflow skeleton.
+
+  - **Factory Patterns**:
+
+      - The `llm.Factory` allows the system to select different LLM clients (e.g., Google Gemini, OpenAI). The system has been tested with **OpenAI's GPT-3.5 Turbo**, but can be easily switched to another model by changing the configuration.
+      - The `prompts.Factory` centralizes all prompt engineering by loading versioned templates from external YAML files, separating prompt logic from business logic.
+
+  - **API-Level Caching**: A simple **in-memory cache** (`go-cache`) with request hashing provides instant responses for repeated queries.
+
+      - **Note**: For this proof-of-concept, the cache is in-memory and local to each container instance. For a production, multi-instance deployment, this would be replaced with a **distributed cache like Redis** to ensure consistency and persistence.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
   - Docker and Docker Compose
-  - A Gemini or OpenAI API Key
+  - An OpenAI or Gemini API Key
 
 ### 1\. Configure Environment
 
@@ -86,7 +75,7 @@ GEMINI_API_KEY="AIza..."
 
 ### 2\. Run the Application
 
-Use Docker Compose to build and run all services (Go API, PostgreSQL, Weaviate, and Jaeger).
+Use Docker Compose to build and run all services.
 
 ```bash
 docker-compose up --build
