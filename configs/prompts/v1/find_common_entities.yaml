@@ -1,6 +1,0 @@
-template: |
-  Based on the following list of article titles, identify the most commonly discussed entities (people, companies, or major topics).
-  List the top 5-7 entities and their number of occurrences, ordered from most frequent to least frequent.
-
-  ## Article Titles:
-  - {{.Titles}}

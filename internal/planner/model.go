@@ -20,6 +20,7 @@ const (
 	IntentComparePositive     QueryIntent = "COMPARE_POSITIVITY"
 	IntentFindCommonEntities  QueryIntent = "FIND_COMMON_ENTITIES"
 	IntentCompareAllSentiment QueryIntent = "COMPARE_ALL_SENTIMENT"
+	IntentCompareMultiple     QueryIntent = "COMPARE_MULTIPLE"
 	IntentUnknown             QueryIntent = "UNKNOWN"
 )
 

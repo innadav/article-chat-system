@@ -22,11 +22,11 @@
   {
     "name": "Entity Extraction",
     "query": "What are the most commonly discussed entities across all articles?",
-    "should_contain": "AI tool"
+    "should_contain": "OpenAI"
   },
   {
     "name": "Tone Comparison",
-    "query": "Compare the tone of the article about Sam Altman and the article about Meta AI",
+    "query": "Compare the tone of the article https://edition.cnn.com/2025/07/25/tech/sequoia-islamophobia-maguire-mamdani and the article https://edition.cnn.com/2025/07/25/tech/meta-ai-superintelligence-team-who-its-hiring",
     "should_contain": "tone"
   },
   {
@@ -48,5 +48,10 @@
     "name": "Multiple Article Analysis",
     "query": "Compare the sentiment of all articles about AI",
     "should_contain": "sentiment"
+  },
+  {
+    "name": "Compare Multiple Articles",
+    "query": "Compare these articles: https://edition.cnn.com/2025/07/27/business/eu-trade-deal, https://edition.cnn.com/2025/07/26/tech/daydream-ai-online-shopping, https://edition.cnn.com/2025/07/25/tech/meta-ai-superintelligence-team-who-its-hiring, https://edition.cnn.com/2025/07/25/tech/sequoia-islamophobia-maguire-mamdani",
+    "should_contain": "Main Theme"
   }
 ]

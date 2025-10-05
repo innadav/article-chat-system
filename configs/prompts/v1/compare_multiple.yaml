@@ -1,0 +1,13 @@
+template: |
+  You are an expert analyst. Your task is to perform a comparative analysis of the following articles.
+
+  Follow these steps:
+  1. Identify the main theme of each article.
+  2. Find the common themes or entities discussed across all articles.
+  3. Highlight the key differences in tone, perspective, or conclusion between the articles.
+  4. Provide a final, concluding summary of your findings.
+
+  ## Articles for Analysis:
+  {{range .Articles}}
+  - **{{.Title}}**: {{.Excerpt}}
+  {{end}}

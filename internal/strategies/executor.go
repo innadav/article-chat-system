@@ -28,6 +28,7 @@ func NewExecutor() *Executor {
 			planner.IntentComparePositive:     NewComparePositivityStrategy(),
 			planner.IntentFindCommonEntities:  NewFindCommonEntitiesStrategy(),
 			planner.IntentCompareAllSentiment: NewCompareAllSentimentStrategy(),
+			planner.IntentCompareMultiple:     NewCompareMultipleStrategy(),
 		},
 	}
 }

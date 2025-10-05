@@ -67,24 +67,38 @@ func NewAnalyzer(llmClient llm.Client, promptFactory *prompts.Factory) *Analyzer
 func (a *Analyzer) InitialAnalysis(ctx context.Context, art *models.Article) error {
 	log.Printf("Performing comprehensive analysis for %s", art.Title)
 
+	// Log input content size before creating prompt
+	contentLength := len(art.TextContent)
+	contentWords := len(strings.Fields(art.TextContent))
+	estimatedTokens := contentLength / 4 // Rough estimate: 1 token ≈ 4 characters
+	log.Printf("Input content size - Characters: %d, Words: %d, Estimated tokens: %d",
+		contentLength, contentWords, estimatedTokens)
+
 	// Use the new simpler initial analysis prompt for more reliable results
-	prompt, err := a.promptFactory.CreateInitialAnalysisPrompt(art.Excerpt)
+	prompt, err := a.promptFactory.CreateInitialAnalysisPrompt(art.TextContent)
 	if err != nil {
 		log.Printf("Failed to create initial analysis prompt for %s: %v", art.Title, err)
-		return a.fallbackAnalysis(ctx, art)
+		return fmt.Errorf("failed to create initial analysis prompt: %w", err)
 	}
+
+	// Log final prompt size
+	promptLength := len(prompt)
+	promptWords := len(strings.Fields(prompt))
+	promptTokens := promptLength / 4
+	log.Printf("Final prompt size - Characters: %d, Words: %d, Estimated tokens: %d",
+		promptLength, promptWords, promptTokens)
 
 	resp, err := a.llmClient.GenerateContent(ctx, prompt)
 	if err != nil {
 		log.Printf("Failed to generate initial analysis for %s: %v", art.Title, err)
-		return a.fallbackAnalysis(ctx, art)
+		return fmt.Errorf("failed to generate initial analysis: %w", err)
 	}
 
 	// Parse the JSON response
 	var analysis initialAnalysisResult
 	if err := json.Unmarshal([]byte(resp.Text), &analysis); err != nil {
 		log.Printf("Failed to parse initial analysis JSON for %s: %v", art.Title, err)
-		return a.fallbackAnalysis(ctx, art)
+		return fmt.Errorf("failed to parse initial analysis JSON: %w", err)
 	}
 
 	// Populate the main Article object with the richer data
@@ -95,36 +109,6 @@ func (a *Analyzer) InitialAnalysis(ctx context.Context, art *models.Article) err
 
 	log.Printf("Successfully analyzed %s: %s", art.Title, analysis.Headline)
 	return nil
-}
-
-// fallbackAnalysis provides a simple fallback if the comprehensive analysis fails
-func (a *Analyzer) fallbackAnalysis(ctx context.Context, art *models.Article) error {
-	log.Printf("Using fallback analysis for %s", art.Title)
-
-	// Simple summary
-	art.Summary = fmt.Sprintf("Summary for %s: %s", art.Title, art.Excerpt)
-
-	// Simple sentiment
-	art.Sentiment = "neutral"
-
-	// Empty arrays
-	art.Entities = []string{}
-	art.Topics = []string{}
-
-	return nil
-}
-
-// parseTopicsFromResponse parses comma-separated topics from LLM response
-func parseTopicsFromResponse(response string) []string {
-	// Simple parsing - split by comma and clean up
-	topics := []string{}
-	for _, topic := range strings.Split(response, ",") {
-		topic = strings.TrimSpace(topic)
-		if topic != "" {
-			topics = append(topics, topic)
-		}
-	}
-	return topics
 }
 
 // Facade provides a simplified interface to the article processing subsystem.
@@ -164,6 +148,7 @@ func (f *Facade) AddNewArticle(ctx context.Context, url string) (*models.Article
 		URL:         url,
 		Title:       parsedArticle.Title,
 		Excerpt:     parsedArticle.Excerpt,
+		TextContent: parsedArticle.TextContent,
 		ProcessedAt: time.Now(),
 	}
 

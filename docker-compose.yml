@@ -9,7 +9,6 @@ services:
       - DB_URL=postgres://user:password@postgres:5432/articledb?sslmode=disable
       - LLM_PROVIDER=openai
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
       - WEAVIATE_HOST=weaviate:8080
       - WEAVIATE_SCHEME=http
       - OTEL_EXPORTER_OTLP_ENDPOINT=jaeger:4317

@@ -6,8 +6,8 @@ set -e
 
 # --- Configuration ---
 API_BASE="http://localhost:8080"
-TEST_DEFINITIONS="tests.json"
-RESULTS_DIR="test_results"
+TEST_DEFINITIONS="../tests.json"
+RESULTS_DIR="../../test_results"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 RESULTS_FILE="$RESULTS_DIR/results_$TIMESTAMP.json"
 

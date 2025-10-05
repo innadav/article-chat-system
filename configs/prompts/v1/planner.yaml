@@ -7,6 +7,7 @@ template: |
   - "KEYWORDS": ["extract keywords for...", "what are the main topics of..."]
   - "SENTIMENT": ["what is the sentiment of the article about...", "get the sentiment for..."]
   - "COMPARE_TONE": ["compare the tone of article A and article B"]
+  - "COMPARE_MULTIPLE": ["compare these articles", "analyze and compare multiple articles", "compare articles A, B, C, D, E"]
   - "FIND_BY_TOPIC": ["find articles about AI", "what articles discuss finance?"]
   - "COMPARE_POSITIVITY": ["which article is more positive about AI regulation?"]
   - "FIND_COMMON_ENTITIES": ["what are the common entities across the articles?"]

@@ -133,3 +133,11 @@ func (f *Factory) CreateComparePositivityPrompt(topic string, articles []*models
 	}
 	return f.executeTemplate("compare_positivity", data)
 }
+
+// CreateCompareMultiplePrompt generates a prompt for comparing multiple articles
+func (f *Factory) CreateCompareMultiplePrompt(articles []*models.Article) (string, error) {
+	data := map[string]interface{}{
+		"Articles": articles,
+	}
+	return f.executeTemplate("compare_multiple", data)
+}
